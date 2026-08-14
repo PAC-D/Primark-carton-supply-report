@@ -558,7 +558,7 @@ def clamp_duration(frm, to):
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `python -m pytest tests/test_filtering.py -v`
-Expected: PASS (8 passed)
+Expected: PASS (7 passed)
 
 - [ ] **Step 5: Commit**
 
@@ -745,12 +745,12 @@ def factories_for(records, packaging_supplier=None, supplier=None):
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `python -m pytest tests/test_filtering.py -v`
-Expected: PASS (16 passed total in file)
+Expected: PASS (15 passed total in file)
 
 - [ ] **Step 5: Run full suite**
 
 Run: `python -m pytest -v`
-Expected: PASS (25 passed)
+Expected: PASS (24 passed)
 
 - [ ] **Step 6: Commit**
 
@@ -911,12 +911,12 @@ def render_pdf(df, title, out):
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `python -m pytest tests/test_pdf.py -v`
-Expected: PASS (4 passed). If `test_pdf_has_total_row_and_title` fails on the `"90"` assertion, adjust the expected number in the test to match the actual grand total (5 rows × 3 months × 6 = 90) — verify by extracting the text.
+Expected: PASS (4 passed). If `test_pdf_has_total_row_and_title` fails on the `"45"` assertion, adjust the expected number in the test to match the actual grand total (5 rows × 3 months × 15 = 45) — verify by extracting the text.
 
 - [ ] **Step 5: Run full suite**
 
 Run: `python -m pytest -v`
-Expected: PASS (29 passed)
+Expected: PASS (28 passed)
 
 - [ ] **Step 6: Commit**
 
@@ -1113,7 +1113,7 @@ Double-click `start.bat` (first run installs dependencies). The app opens in you
 - [ ] **Step 4: Run unit suite**
 
 Run: `python -m pytest -v`
-Expected: PASS (29 passed)
+Expected: PASS (28 passed)
 
 - [ ] **Step 5: Manual verification against the real workbook**
 
