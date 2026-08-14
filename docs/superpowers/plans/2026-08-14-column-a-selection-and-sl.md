@@ -291,19 +291,12 @@ and in the totals-row loop:
 ```python
         for c in columns:
             if c in LABEL_COLUMNS:
-                total_row.append("")
+                total_row.append("Total" if c == "Packaging Supplier" else "")
             else:
                 total_row.append(_fmt(sums[c]))
 ```
 
-(The old `"Total" if c == "Packaging Supplier" else ""` special case becomes a plain blank for all four label columns — the "Total" marker in the totals row disappears. If the PDF total row should still carry the word "Total", the simplest matching behavior is to put it in the "Packaging Supplier" cell, i.e. keep:
-
-```python
-            if c in LABEL_COLUMNS:
-                total_row.append("Total" if c == "Packaging Supplier" else "")
-```
-
-Use this version — it preserves the existing "Total" marker the tests assert on.)
+(The "Total" marker stays in the "Packaging Supplier" cell of the totals row — `test_pdf_has_total_row_and_title` asserts "Total" appears in the extracted text.)
 
 - [ ] **Step 4: Run tests to verify they pass**
 
