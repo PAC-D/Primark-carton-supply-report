@@ -9,9 +9,9 @@ Double-click `start.bat` (first run installs dependencies). The app opens in you
 ## Use
 
 - Place `Sales Record V1.xlsx` in the same folder as `app.py`.
-- Filter by Packaging Supplier, Supplier, Factory (multi-select; empty = All), and From/To months (max 24 months; default = latest 24).
+- Filter by Packaging Supplier, Supplier, Factory (multi-select; empty = All), and any From/To month range (default: full range of the data).
 - The table starts with an SL (serial) column, numbered 1, 2, 3... in the current view.
-- Click "Export PDF" to download a multi-page report. The page is sized to fit the table (no cut-off cells), with repeating headers and a totals row; values are whole numbers.
+- Click "Export Excel" to download the filtered table as a formatted .xlsx (header row, totals row, whole numbers).
 
 ## Notes
 

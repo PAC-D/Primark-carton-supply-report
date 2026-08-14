@@ -14,6 +14,7 @@ from filtering import (
     suppliers_for,
 )
 from loader import load_records
+from excel_export import render_excel
 
 WORKBOOK = Path(__file__).parent / "Sales Record V1.xlsx"
 
@@ -73,11 +74,11 @@ def main():
 
     with f4:
         from_date = st.date_input(
-            "From", value=from_default, min_value=datetime.date(2020, 1, 1), max_value=to_default
+            "From", value=from_default, min_value=from_default, max_value=to_default
         )
     with f5:
         to_date = st.date_input(
-            "To", value=to_default, min_value=datetime.date(2020, 1, 1), max_value=to_default
+            "To", value=to_default, min_value=from_default, max_value=to_default
         )
 
     frm = (from_date.year, from_date.month)
@@ -106,6 +107,17 @@ def main():
     st.dataframe(df, use_container_width=True, hide_index=True)
 
     title = (", ".join(pkg_sel) if pkg_sel else "All suppliers") + f" \u2014 {month_label(frm)} to {month_label(to)}"
+    try:
+        buf = io.BytesIO()
+        render_excel(df, title, buf)
+        st.download_button(
+            "Export Excel",
+            data=buf.getvalue(),
+            file_name="carton-report.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+    except Exception as exc:
+        st.error(f"Excel export failed: {exc}")
 
 
 main()
