@@ -48,6 +48,7 @@ def test_pdf_has_sl_column(tmp_path):
     render_pdf(make_df(rows=5, months=3), "M&U — Jan-26 to Mar-26", path)
     text = "".join(page.extract_text() or "" for page in PdfReader(str(path)).pages)
     assert "SL" in text
+    assert sum(1 for line in text.splitlines() if line == "15") == 4
 
 
 def test_pdf_empty_table(tmp_path):
