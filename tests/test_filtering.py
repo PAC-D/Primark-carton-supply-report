@@ -81,8 +81,9 @@ def recs():
 
 def test_build_table_columns_and_total():
     df = build_table(recs(), frm=(2026, 1), to=(2026, 2))
-    assert df.columns.tolist() == ["Packaging Supplier", "Supplier", "Factory", "Jan-26", "Feb-26", "Total"]
+    assert df.columns.tolist() == ["SL", "Packaging Supplier", "Supplier", "Factory", "Jan-26", "Feb-26", "Total"]
     assert len(df) == 3
+    assert df["SL"].tolist() == [1, 2, 3]
     row = df[df["Factory"] == "Aspire"].iloc[0]
     assert row["Jan-26"] == 10
     assert row["Feb-26"] == 5
@@ -113,7 +114,7 @@ def test_build_table_multiple_filters():
 
 def test_build_table_month_range():
     df = build_table(recs(), frm=(2026, 2), to=(2026, 2))
-    assert df.columns.tolist() == ["Packaging Supplier", "Supplier", "Factory", "Feb-26", "Total"]
+    assert df.columns.tolist() == ["SL", "Packaging Supplier", "Supplier", "Factory", "Feb-26", "Total"]
     row = df[df["Factory"] == "Aspire"].iloc[0]
     assert row["Feb-26"] == 5
     assert row["Total"] == 5
@@ -121,22 +122,22 @@ def test_build_table_month_range():
 
 def test_build_table_default_duration():
     df = build_table(recs())
-    assert df.columns.tolist()[3] == "Mar-24"
+    assert df.columns.tolist()[4] == "Mar-24"
     assert df.columns.tolist()[-2] == "Feb-26"
     assert df.columns.tolist()[-1] == "Total"
-    assert len(df.columns) == 28
+    assert len(df.columns) == 29
 
 
 def test_build_table_empty_records():
     df = build_table([])
     assert df.empty
-    assert df.columns.tolist() == ["Packaging Supplier", "Supplier", "Factory", "Total"]
+    assert df.columns.tolist() == ["SL", "Packaging Supplier", "Supplier", "Factory", "Total"]
 
 
 def test_build_table_month_beyond_data_is_zero():
     df = build_table(recs(), frm=(2026, 3), to=(2026, 3))
     assert df.empty
-    assert df.columns.tolist() == ["Packaging Supplier", "Supplier", "Factory", "Mar-26", "Total"]
+    assert df.columns.tolist() == ["SL", "Packaging Supplier", "Supplier", "Factory", "Mar-26", "Total"]
 
 
 def test_option_lists():

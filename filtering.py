@@ -39,7 +39,7 @@ from collections import defaultdict
 
 import pandas as pd
 
-BASE_COLUMNS = ["Packaging Supplier", "Supplier", "Factory"]
+BASE_COLUMNS = ["SL", "Packaging Supplier", "Supplier", "Factory"]
 
 
 def _as_list(value):
@@ -86,7 +86,8 @@ def build_table(records, packaging_supplier=None, supplier=None, factory=None, f
         if total == 0:
             continue
         rows.append(list(key) + [cartons.get(m, 0.0) for m in months] + [total])
-    return pd.DataFrame(rows, columns=BASE_COLUMNS + [month_label(m) for m in months] + ["Total"])
+    numbered = [[i] + row for i, row in enumerate(rows, start=1)]
+    return pd.DataFrame(numbered, columns=BASE_COLUMNS + [month_label(m) for m in months] + ["Total"])
 
 
 def packaging_suppliers(records):
