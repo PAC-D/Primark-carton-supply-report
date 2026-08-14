@@ -1,5 +1,4 @@
 from filtering import (
-    clamp_duration,
     default_duration,
     key_of,
     month_label,
@@ -30,31 +29,21 @@ def test_month_label():
     assert month_label((2025, 12)) == "Dec-25"
 
 
-def test_default_duration_latest_24():
+def test_default_duration_full_range():
     records = [rec(2021, 1)] + [rec(2026, 7)] + [rec(2026, 7, 0)]
     frm, to = default_duration(records)
+    assert frm == (2021, 1)
     assert to == (2026, 7)
-    assert frm == (2024, 8)
-    assert key_of(to) - key_of(frm) + 1 == 24
 
 
 def test_default_duration_empty():
     assert default_duration([]) is None
 
 
-def test_default_duration_less_than_24():
-    # Spec: default is ALWAYS the latest 24 months, even when data is sparse.
-    records = [rec(2026, 1), rec(2026, 2), rec(2026, 3)]
+def test_default_duration_single_month():
+    records = [rec(2026, 3), rec(2026, 3, 0)]
     frm, to = default_duration(records)
-    assert frm == (2024, 4)
-    assert to == (2026, 3)
-    assert key_of(to) - key_of(frm) + 1 == 24
-
-
-def test_clamp_duration_max_24():
-    assert clamp_duration((2024, 1), (2026, 7)) == ((2024, 8), (2026, 7))
-    assert clamp_duration((2024, 8), (2026, 7)) == ((2024, 8), (2026, 7))
-    assert clamp_duration((2026, 1), (2026, 3)) == ((2026, 1), (2026, 3))
+    assert (frm, to) == ((2026, 3), (2026, 3))
 
 
 import pandas as pd
@@ -122,10 +111,10 @@ def test_build_table_month_range():
 
 def test_build_table_default_duration():
     df = build_table(recs())
-    assert df.columns.tolist()[4] == "Mar-24"
+    assert df.columns.tolist()[4] == "Jan-26"
     assert df.columns.tolist()[-2] == "Feb-26"
     assert df.columns.tolist()[-1] == "Total"
-    assert len(df.columns) == 29
+    assert len(df.columns) == 7
 
 
 def test_build_table_empty_records():

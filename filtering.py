@@ -1,7 +1,5 @@
 import datetime
 
-MAX_MONTHS = 24
-
 
 def key_of(period):
     year, month = period
@@ -24,15 +22,8 @@ def month_label(period):
 def default_duration(records):
     if not records:
         return None
-    to = max((r.year, r.month) for r in records)
-    frm = period_of(key_of(to) - (MAX_MONTHS - 1))
-    return frm, to
-
-
-def clamp_duration(frm, to):
-    if key_of(to) - key_of(frm) + 1 > MAX_MONTHS:
-        frm = period_of(key_of(to) - (MAX_MONTHS - 1))
-    return frm, to
+    periods = [(r.year, r.month) for r in records]
+    return min(periods), max(periods)
 
 
 from collections import defaultdict
