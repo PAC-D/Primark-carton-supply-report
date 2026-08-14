@@ -41,10 +41,11 @@ def render_pdf(df, title, out):
     if isinstance(out, os.PathLike):
         out = os.fspath(out)
     columns = df.columns.tolist()
+    n = len(LABEL_COLUMNS)
     data = [columns]
     if len(df):
         for row in df.values.tolist():
-            data.append(list(row[:3]) + [_fmt(v) for v in row[3:]])
+            data.append(list(row[:n]) + [_fmt(v) for v in row[n:]])
         sums = df.sum(numeric_only=True)
         total_row = []
         for c in columns:
@@ -55,8 +56,8 @@ def render_pdf(df, title, out):
         data.append(total_row)
 
     widths = (
-        [_label_width([row[i] for row in data]) for i in range(4)]
-        + [MONTH_COL_WIDTH] * (len(columns) - 4)
+        [_label_width([row[i] for row in data]) for i in range(n)]
+        + [MONTH_COL_WIDTH] * (len(columns) - n)
     )
     doc = SimpleDocTemplate(
         out,
@@ -79,7 +80,7 @@ def render_pdf(df, title, out):
         ("BACKGROUND", (0, 0), (-1, 0), HEADER_BG),
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
         ("FONTSIZE", (0, 0), (-1, -1), FONT_SIZE),
-        ("ALIGN", (3, 0), (-1, -1), "RIGHT"),
+        ("ALIGN", (n, 0), (-1, -1), "RIGHT"),
     ]
     if len(data) > 1:
         style.append(("ROWBACKGROUNDS", (0, 1), (-1, -2), [colors.white, ALT_BG]))

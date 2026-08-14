@@ -51,6 +51,16 @@ def test_pdf_has_sl_column(tmp_path):
     assert sum(1 for line in text.splitlines() if line == "15") == 4
 
 
+def test_pdf_keeps_numeric_label_columns_unmangled(tmp_path):
+    path = tmp_path / "out.pdf"
+    df = make_df(rows=3, months=3)
+    df.loc[0, "Factory"] = "12.5"
+    render_pdf(df, "M&U — Jan-26 to Mar-26", path)
+    text = "".join(page.extract_text() or "" for page in PdfReader(str(path)).pages)
+    assert "12.5" in text
+    assert not any(line == "12" for line in text.splitlines())
+
+
 def test_pdf_empty_table(tmp_path):
     path = tmp_path / "empty.pdf"
     df = pd.DataFrame(columns=["Packaging Supplier", "Supplier", "Factory", "Jan-26", "Total"])
