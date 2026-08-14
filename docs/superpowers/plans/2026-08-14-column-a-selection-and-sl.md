@@ -237,7 +237,7 @@ git commit -m "feat: add SL index column to table"
 
 **Interfaces:**
 - Consumes: `build_table(...)` output — a DataFrame whose first column is `"SL"` (from Task 2).
-- Produces: unchanged `render_pdf(df, title, out)`; PDF column order mirrors the DataFrame; SL blank in totals row; SL right-aligned; SL column width auto-sized like the label columns.
+- Produces: unchanged `render_pdf(df, title, out)`; PDF column order mirrors the DataFrame; SL blank in totals row; SL left-aligned like the other label columns; SL column width auto-sized like the label columns.
 
 - [ ] **Step 1: Update the failing tests**
 
