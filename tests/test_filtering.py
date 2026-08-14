@@ -55,3 +55,84 @@ def test_clamp_duration_max_24():
     assert clamp_duration((2024, 1), (2026, 7)) == ((2024, 8), (2026, 7))
     assert clamp_duration((2024, 8), (2026, 7)) == ((2024, 8), (2026, 7))
     assert clamp_duration((2026, 1), (2026, 3)) == ((2026, 1), (2026, 3))
+
+
+import pandas as pd
+
+from filtering import (
+    build_table,
+    factories_for,
+    packaging_suppliers,
+    suppliers_for,
+)
+
+
+def recs():
+    return [
+        Record("M&U", "PADMA", "Aspire", 2026, 1, 10),
+        Record("M&U", "PADMA", "Aspire", 2026, 2, 5),
+        Record("M&U", "TEX", "Aboni", 2026, 1, 7),
+        Record("Union", "CENTRO", "APS", 2026, 1, 3),
+        Record("Union", "CENTRO", "APS", 2026, 2, 0),
+        Record("Union", "CENTRO", "Zero Row", 2026, 1, 0),
+        Record("Union", "CENTRO", "Zero Row", 2026, 2, 0),
+    ]
+
+
+def test_build_table_columns_and_total():
+    df = build_table(recs(), frm=(2026, 1), to=(2026, 2))
+    assert df.columns.tolist() == ["Packaging Supplier", "Supplier", "Factory", "Jan-26", "Feb-26", "Total"]
+    assert len(df) == 3
+    row = df[df["Factory"] == "Aspire"].iloc[0]
+    assert row["Jan-26"] == 10
+    assert row["Feb-26"] == 5
+    assert row["Total"] == 15
+
+
+def test_build_table_hides_zero_rows():
+    df = build_table(recs(), frm=(2026, 1), to=(2026, 2))
+    assert "Zero Row" not in df["Factory"].tolist()
+
+
+def test_build_table_filters():
+    df = build_table(recs(), packaging_supplier="Union", supplier="CENTRO",
+                     factory="APS", frm=(2026, 1), to=(2026, 2))
+    assert len(df) == 1
+    assert df.iloc[0]["Total"] == 3
+
+
+def test_build_table_month_range():
+    df = build_table(recs(), frm=(2026, 2), to=(2026, 2))
+    assert df.columns.tolist() == ["Packaging Supplier", "Supplier", "Factory", "Feb-26", "Total"]
+    row = df[df["Factory"] == "Aspire"].iloc[0]
+    assert row["Feb-26"] == 5
+    assert row["Total"] == 5
+
+
+def test_build_table_default_duration():
+    df = build_table(recs())
+    assert df.columns.tolist()[3] == "Mar-24"
+    assert df.columns.tolist()[-2] == "Feb-26"
+    assert df.columns.tolist()[-1] == "Total"
+    assert len(df.columns) == 28
+
+
+def test_build_table_empty_records():
+    df = build_table([])
+    assert df.empty
+    assert df.columns.tolist() == ["Packaging Supplier", "Supplier", "Factory", "Total"]
+
+
+def test_build_table_month_beyond_data_is_zero():
+    df = build_table(recs(), frm=(2026, 3), to=(2026, 3))
+    assert df.empty
+    assert df.columns.tolist() == ["Packaging Supplier", "Supplier", "Factory", "Mar-26", "Total"]
+
+
+def test_option_lists():
+    rs = recs()
+    assert packaging_suppliers(rs) == ["M&U", "Union"]
+    assert suppliers_for(rs, "M&U") == ["PADMA", "TEX"]
+    assert suppliers_for(rs) == ["CENTRO", "PADMA", "TEX"]
+    assert factories_for(rs, "M&U", "PADMA") == ["Aspire"]
+    assert factories_for(rs, "Union") == ["APS", "Zero Row"]
