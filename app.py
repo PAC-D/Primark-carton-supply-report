@@ -57,18 +57,20 @@ def main():
 
     f1, f2, f3, f4, f5 = st.columns([2, 3, 3, 2, 2])
     with f1:
-        pkg = st.selectbox("Packaging Supplier", ["All"] + packaging_suppliers(records))
-    pkg_sel = None if pkg == "All" else pkg
+        pkg = st.multiselect(
+            "Packaging Supplier", packaging_suppliers(records), placeholder="All"
+        )
+    pkg_sel = pkg or None
 
     with f2:
         sups = suppliers_for(records, pkg_sel)
-        sup = st.selectbox("Supplier", ["All"] + sups)
-    sup_sel = None if sup == "All" else sup
+        sup = st.multiselect("Supplier", sups, placeholder="All")
+    sup_sel = sup or None
 
     with f3:
         facs = factories_for(records, pkg_sel, sup_sel)
-        fac = st.selectbox("Factory", ["All"] + facs)
-    fac_sel = None if fac == "All" else fac
+        fac = st.multiselect("Factory", facs, placeholder="All")
+    fac_sel = fac or None
 
     with f4:
         from_date = st.date_input(
@@ -108,7 +110,7 @@ def main():
 
     st.dataframe(df, use_container_width=True, hide_index=True)
 
-    title = (pkg if pkg_sel else "All suppliers") + f" \u2014 {month_label(frm)} to {month_label(to)}"
+    title = (", ".join(pkg_sel) if pkg_sel else "All suppliers") + f" \u2014 {month_label(frm)} to {month_label(to)}"
     try:
         buf = io.BytesIO()
         render_pdf(df, title, buf)

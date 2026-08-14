@@ -9,8 +9,8 @@ Double-click `start.bat` (first run installs dependencies). The app opens in you
 ## Use
 
 - Place `Sales Record V1.xlsx` in the same folder as `app.py`.
-- Filter by Packaging Supplier, Supplier, Factory, and From/To months (max 24 months; default = latest 24).
-- Click "Export PDF" to download a landscape A4 report with repeating headers and a totals row.
+- Filter by Packaging Supplier, Supplier, Factory (multi-select; empty = All), and From/To months (max 24 months; default = latest 24).
+- Click "Export PDF" to download a multi-page report. The page is sized to fit the table (no cut-off cells), with repeating headers and a totals row; values are whole numbers.
 
 ## Notes
 

@@ -101,6 +101,16 @@ def test_build_table_filters():
     assert df.iloc[0]["Total"] == 3
 
 
+def test_build_table_multiple_filters():
+    df = build_table(recs(), packaging_supplier=["M&U", "Union"],
+                     frm=(2026, 1), to=(2026, 2))
+    assert len(df) == 3
+    df = build_table(recs(), factory=["Aspire", "APS"], frm=(2026, 1), to=(2026, 2))
+    assert len(df) == 2
+    df = build_table(recs(), packaging_supplier=[], frm=(2026, 1), to=(2026, 2))
+    assert len(df) == 3
+
+
 def test_build_table_month_range():
     df = build_table(recs(), frm=(2026, 2), to=(2026, 2))
     assert df.columns.tolist() == ["Packaging Supplier", "Supplier", "Factory", "Feb-26", "Total"]
@@ -136,3 +146,10 @@ def test_option_lists():
     assert suppliers_for(rs) == ["CENTRO", "PADMA", "TEX"]
     assert factories_for(rs, "M&U", "PADMA") == ["Aspire"]
     assert factories_for(rs, "Union") == ["APS", "Zero Row"]
+
+
+def test_option_lists_multiple():
+    rs = recs()
+    assert suppliers_for(rs, ["M&U", "Union"]) == ["CENTRO", "PADMA", "TEX"]
+    assert suppliers_for(rs, []) == ["CENTRO", "PADMA", "TEX"]
+    assert factories_for(rs, ["M&U", "Union"], ["CENTRO"]) == ["APS", "Zero Row"]

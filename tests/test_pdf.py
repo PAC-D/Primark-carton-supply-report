@@ -55,3 +55,21 @@ def test_pdf_accepts_file_object():
     buf = io.BytesIO()
     render_pdf(make_df(rows=10, months=4), "Test", buf)
     assert len(buf.getvalue()) > 1000
+
+
+def test_pdf_page_width_grows_with_columns(tmp_path):
+    p3 = tmp_path / "a.pdf"
+    p12 = tmp_path / "b.pdf"
+    render_pdf(make_df(rows=5, months=3), "T", p3)
+    render_pdf(make_df(rows=5, months=12), "T", p12)
+    w3 = PdfReader(str(p3)).pages[0].mediabox.width
+    w12 = PdfReader(str(p12)).pages[0].mediabox.width
+    assert w12 > w3
+
+
+def test_pdf_no_decimals(tmp_path):
+    path = tmp_path / "out.pdf"
+    render_pdf(make_df(rows=5, months=3), "T", path)
+    text = "".join(page.extract_text() or "" for page in PdfReader(str(path)).pages)
+    assert ".0" not in text
+    assert "45" in text

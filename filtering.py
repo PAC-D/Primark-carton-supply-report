@@ -42,6 +42,14 @@ import pandas as pd
 BASE_COLUMNS = ["Packaging Supplier", "Supplier", "Factory"]
 
 
+def _as_list(value):
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return [value]
+    return list(value)
+
+
 def _empty_table(months):
     return pd.DataFrame(columns=BASE_COLUMNS + [month_label(m) for m in months] + ["Total"])
 
@@ -55,14 +63,17 @@ def build_table(records, packaging_supplier=None, supplier=None, factory=None, f
     months = range_months(frm, to)
     if not records:
         return _empty_table(months)
+    pkg_sel = _as_list(packaging_supplier)
+    sup_sel = _as_list(supplier)
+    fac_sel = _as_list(factory)
     agg = defaultdict(lambda: defaultdict(float))
     fk, tk = key_of(frm), key_of(to)
     for r in records:
-        if packaging_supplier and r.packaging_supplier != packaging_supplier:
+        if pkg_sel and r.packaging_supplier not in pkg_sel:
             continue
-        if supplier and r.supplier != supplier:
+        if sup_sel and r.supplier not in sup_sel:
             continue
-        if factory and r.factory != factory:
+        if fac_sel and r.factory not in fac_sel:
             continue
         k = key_of((r.year, r.month))
         if not (fk <= k <= tk):
@@ -83,15 +94,18 @@ def packaging_suppliers(records):
 
 
 def suppliers_for(records, packaging_supplier=None):
+    pkg_sel = _as_list(packaging_supplier)
     return sorted({
         r.supplier for r in records
-        if not packaging_supplier or r.packaging_supplier == packaging_supplier
+        if not pkg_sel or r.packaging_supplier in pkg_sel
     })
 
 
 def factories_for(records, packaging_supplier=None, supplier=None):
+    pkg_sel = _as_list(packaging_supplier)
+    sup_sel = _as_list(supplier)
     return sorted({
         r.factory for r in records
-        if (not packaging_supplier or r.packaging_supplier == packaging_supplier)
-        and (not supplier or r.supplier == supplier)
+        if (not pkg_sel or r.packaging_supplier in pkg_sel)
+        and (not sup_sel or r.supplier in sup_sel)
     })
