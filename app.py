@@ -6,7 +6,6 @@ import streamlit as st
 
 from filtering import (
     build_table,
-    clamp_duration,
     default_duration,
     factories_for,
     key_of,
@@ -15,7 +14,6 @@ from filtering import (
     suppliers_for,
 )
 from loader import load_records
-from pdf import render_pdf
 
 WORKBOOK = Path(__file__).parent / "Sales Record V1.xlsx"
 
@@ -86,10 +84,6 @@ def main():
     to = (to_date.year, to_date.month)
     if frm > to:
         frm, to = to, frm
-    clamped_frm, clamped_to = clamp_duration(frm, to)
-    if (clamped_frm, clamped_to) != (frm, to):
-        st.caption(f"Range capped at 24 months — showing {month_label(clamped_frm)} to {month_label(clamped_to)}.")
-    frm, to = clamped_frm, clamped_to
 
     df = build_table(
         records,
@@ -112,17 +106,6 @@ def main():
     st.dataframe(df, use_container_width=True, hide_index=True)
 
     title = (", ".join(pkg_sel) if pkg_sel else "All suppliers") + f" \u2014 {month_label(frm)} to {month_label(to)}"
-    try:
-        buf = io.BytesIO()
-        render_pdf(df, title, buf)
-        st.download_button(
-            "Export PDF",
-            data=buf.getvalue(),
-            file_name="carton-report.pdf",
-            mime="application/pdf",
-        )
-    except Exception as exc:
-        st.error(f"PDF generation failed: {exc}")
 
 
 main()
