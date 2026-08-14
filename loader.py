@@ -41,12 +41,11 @@ def _parse_sheet(ws):
         )
     records = []
     for r in range(3, ws.max_row + 1):
+        sl = ws.cell(row=r, column=1).value
+        if not isinstance(sl, (int, float)) or isinstance(sl, bool):
+            continue
         supplier = str(ws.cell(row=r, column=supplier_col).value or "").strip()
         factory = str(ws.cell(row=r, column=factory_col).value or "").strip()
-        if not supplier and not factory:
-            continue
-        if "total" in (supplier + " " + factory).lower():
-            continue
         row_values = [c.value for c in next(ws.iter_rows(min_row=r, max_row=r))]
         extent = max((i + 1 for i, v in enumerate(row_values) if v is not None), default=0)
         for c, year, month in month_cols:

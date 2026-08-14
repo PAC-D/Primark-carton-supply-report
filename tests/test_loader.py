@@ -33,7 +33,9 @@ def test_re_replaces_original(tmp_path):
     assert records[0].cartons == 200
 
 
-def test_total_row_excluded(tmp_path):
+def test_total_fashion_pjt_row_included(tmp_path):
+    # Approved consequence: subtotal rows like "Total Fashion PJT" carry a
+    # numeric column A and are no longer dropped by name checks.
     path = make_workbook(tmp_path, {
         "M&U - 2026": [
             ("A", "Factory One", {(2026, 1): 100}),
@@ -41,8 +43,45 @@ def test_total_row_excluded(tmp_path):
         ],
     })
     records, _ = load_records(path)
+    assert len(records) == 2
+
+
+def test_blank_column_a_row_dropped(tmp_path):
+    import datetime
+    import openpyxl
+    wb = openpyxl.Workbook()
+    wb.remove(wb.active)
+    ws = wb.create_sheet("M&U - 2026")
+    ws.append(["Sl", "Suppliers", "Factory ", None, None])
+    ws.cell(row=2, column=4, value=datetime.datetime(2026, 1, 1))
+    ws.cell(row=3, column=1, value=1)
+    ws.cell(row=3, column=2, value="A")
+    ws.cell(row=3, column=3, value="Factory One")
+    ws.cell(row=3, column=4, value=100)
+    # blank column A -> dropped
+    ws.cell(row=4, column=2, value="B")
+    ws.cell(row=4, column=3, value="Factory Two")
+    ws.cell(row=4, column=4, value=200)
+    path = tmp_path / "test.xlsx"
+    wb.save(path)
+    records, _ = load_records(path)
     assert len(records) == 1
     assert records[0].factory == "Factory One"
+
+
+def test_text_column_a_row_dropped(tmp_path):
+    path = make_workbook(tmp_path, {
+        "M&U - 2026": [
+            ("A", "Factory One", {(2026, 1): 100}),
+        ],
+    })
+    import openpyxl
+    wb = openpyxl.load_workbook(path)
+    ws = wb["M&U - 2026"]
+    ws.cell(row=3, column=1, value="Sl")
+    wb.save(path)
+    records, _ = load_records(path)
+    assert len(records) == 0
 
 
 def test_sheet_without_months_warns(tmp_path):
