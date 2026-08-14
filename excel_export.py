@@ -63,14 +63,15 @@ def render_excel(df, title, out):
             if c > n:
                 cell.alignment = Alignment(horizontal="right")
 
-    last = ws.max_row
-    for c in range(1, len(columns) + 1):
-        cell = ws.cell(row=last, column=c)
-        cell.font = Font(bold=True)
-        cell.fill = PatternFill("solid", fgColor=TOTAL_BG)
+    if len(df):
+        last = ws.max_row
+        for c in range(1, len(columns) + 1):
+            cell = ws.cell(row=last, column=c)
+            cell.font = Font(bold=True)
+            cell.fill = PatternFill("solid", fgColor=TOTAL_BG)
 
     for c in range(1, len(columns) + 1):
-        col = [ws.cell(row=r, column=c).value for r in range(2, last + 1)] + [columns[c - 1]]
+        col = [ws.cell(row=r, column=c).value for r in range(2, ws.max_row + 1)] + [columns[c - 1]]
         ws.column_dimensions[get_column_letter(c)].width = _column_width(col)
 
     ws.freeze_panes = "A3"

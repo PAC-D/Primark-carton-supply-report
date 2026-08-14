@@ -38,6 +38,22 @@ def test_excel_export_structure(tmp_path):
     assert total_row == [None, "Total", None, None, 10, 10, 10, 30]
 
 
+def test_excel_export_styling(tmp_path):
+    path = tmp_path / "out.xlsx"
+    df = make_df(rows=4, months=3)
+    render_excel(df, "M&U — Jan-26 to Mar-26", path)
+    ws = openpyxl.load_workbook(path)["Report"]
+    assert ws["A2"].font.bold
+    assert ws["A2"].fill.start_color.rgb.endswith("D9E2F3")
+    assert ws["B7"].value == "Total"
+    assert ws["B7"].font.bold
+    assert ws["B7"].fill.start_color.rgb.endswith("E2EFDA")
+    assert ws["A3"].border.left.style == "thin"
+    values = df["Supplier"].astype(str).tolist() + ["Supplier", ""]
+    expected = min(max(len(v) for v in values) + 2, 40)
+    assert ws.column_dimensions["C"].width == expected
+
+
 def test_excel_export_whole_numbers(tmp_path):
     path = tmp_path / "out.xlsx"
     df = make_df(rows=3, months=2)
