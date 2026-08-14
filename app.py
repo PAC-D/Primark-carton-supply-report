@@ -9,6 +9,7 @@ from filtering import (
     clamp_duration,
     default_duration,
     factories_for,
+    key_of,
     month_label,
     packaging_suppliers,
     suppliers_for,
@@ -100,7 +101,7 @@ def main():
     )
 
     st.caption(
-        f"{len(df):,} rows \u00b7 {len(df.columns) - 3} months "
+        f"{len(df):,} rows \u00b7 {key_of(to) - key_of(frm) + 1} months "
         f"\u00b7 {month_label(frm)} to {month_label(to)}"
     )
 
