@@ -15,6 +15,7 @@
 - Rows with zero cartons across the whole selected range are hidden.
 - Re sheets (`<Supplier> Re - <Year>`) replace the original `<Supplier> - <Year>`; never both.
 - Summary sheets `2024` and `Uniglory Sales Analy` are always ignored, silently.
+- Sheet titles are split on `-` (whitespace stripped from each part); supplier = first part, year = last part. This handles both `M&U - 2026` and `Union-2021` (no spaces).
 - Any other sheet with no month headers is skipped and added to a visible warning list.
 - Rows whose supplier or factory name contains `total` (case-insensitive) are excluded.
 - Month headers are `datetime` values in row 2. Factory column = the row-2 header whose stripped value equals `factory`; Supplier column = header `suppliers`; fall back to col B (suppliers) and col C (factory) if not found.
@@ -304,23 +305,26 @@ def _num(value):
 
 
 def _parse_sheet(ws):
-    header = [ws.cell(row=2, column=c).value for c in range(1, ws.max_column + 1)]
     month_cols = []
-    for i, v in enumerate(header):
+    for i, v in enumerate([ws.cell(row=2, column=c).value for c in range(1, ws.max_column + 1)]):
         if isinstance(v, (datetime.datetime, datetime.date)):
             month_cols.append((i + 1, v.year, v.month))
     if not month_cols:
         return None
-    factory_col = next(
-        (i + 1 for i, v in enumerate(header)
-         if isinstance(v, str) and v.strip().lower() == "factory"),
-        3,
-    )
-    supplier_col = next(
-        (i + 1 for i, v in enumerate(header)
-         if isinstance(v, str) and v.strip().lower() == "suppliers"),
-        2,
-    )
+    factory_col = 3
+    supplier_col = 2
+    for r in (2, 1):
+        row = [ws.cell(row=r, column=c).value for c in range(1, ws.max_column + 1)]
+        factory_col = next(
+            (i + 1 for i, v in enumerate(row)
+             if isinstance(v, str) and v.strip().lower() == "factory"),
+            factory_col,
+        )
+        supplier_col = next(
+            (i + 1 for i, v in enumerate(row)
+             if isinstance(v, str) and v.strip().lower() == "suppliers"),
+            supplier_col,
+        )
     records = []
     for r in range(3, ws.max_row + 1):
         supplier = str(ws.cell(row=r, column=supplier_col).value or "").strip()
@@ -329,14 +333,18 @@ def _parse_sheet(ws):
             continue
         if "total" in (supplier + " " + factory).lower():
             continue
+        row_values = [c.value for c in next(ws.iter_rows(min_row=r, max_row=r))]
+        extent = max((i + 1 for i, v in enumerate(row_values) if v is not None), default=0)
         for c, year, month in month_cols:
+            if c > extent:
+                continue
             records.append(Record(
                 packaging_supplier="",  # filled by caller
                 supplier=supplier,
                 factory=factory,
                 year=year,
                 month=month,
-                cartons=_num(ws.cell(row=r, column=c).value),
+                cartons=_num(row_values[c - 1]),
             ))
     return records
 
@@ -346,16 +354,16 @@ def load_records(path):
     sheets = {}
     for ws in wb.worksheets:
         title = ws.title.strip()
-        parts = title.split(" - ")
+        parts = title.split("-")
         if len(parts) < 2 or title in SUMMARY_SHEETS:
             continue
         sheets[title] = ws
 
     groups = {}
     for title in sheets:
-        parts = title.split(" - ")
-        supplier = parts[0].strip()
-        year = parts[-1].strip()
+        parts = [p.strip() for p in title.split("-")]
+        supplier = parts[0]
+        year = parts[-1]
         if not year.isdigit():
             continue
         is_re = supplier.endswith(" Re")
@@ -371,7 +379,7 @@ def load_records(path):
     warnings = []
     for title in chosen:
         ws = sheets[title]
-        supplier_name = title.split(" - ")[0].strip()
+        supplier_name = title.split("-")[0].strip()
         if supplier_name.endswith(" Re"):
             supplier_name = supplier_name[:-3].strip()
         parsed = _parse_sheet(ws)
@@ -404,7 +412,7 @@ Run:
 python -c "from loader import load_records; recs, warns = load_records('Sales Record V1.xlsx'); print(len(recs), 'records'); print('warnings:', warns); from collections import defaultdict; t = defaultdict(float); [t.__setitem__(r.packaging_supplier, t[r.packaging_supplier] + r.cartons) for r in recs]; print(dict(t))"
 ```
 
-Expected: tens of thousands of records; warnings lists the no-month sheets (`M&U - 2020`, `M&U - 2021`, `Uniglory - 2020`, `Uniglory - 2021`); supplier totals roughly match the earlier analysis (Uniglory ~60M, M&U ~55M, Union ~26M, Epyllion ~23.5M).
+Expected: ~16,756 records; warnings lists `M&U - 2020` and `Uniglory - 2020` only (the 2021 originals are dropped by Re-replacement before parsing, so they are never warned); supplier totals (excluding "Total Sales Unit" subtotal rows, per the Total-row exclusion rule): Uniglory ~31.1M, M&U ~21.4M, Union ~8.3M, Epyllion ~7.8M.
 
 - [ ] **Step 6: Run full suite**
 
