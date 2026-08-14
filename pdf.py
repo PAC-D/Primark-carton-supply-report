@@ -1,5 +1,6 @@
 import datetime
 import os
+from xml.sax.saxutils import escape
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
@@ -32,7 +33,7 @@ def render_pdf(df, title, out):
         title=title,
     )
     story = [
-        Paragraph(title, TITLE_STYLE),
+        Paragraph(escape(title), TITLE_STYLE),
         Paragraph(f"Generated on {datetime.date.today():%d %b %Y}", SUB_STYLE),
         Spacer(1, 4 * mm),
     ]

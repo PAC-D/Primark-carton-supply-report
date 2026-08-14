@@ -36,6 +36,7 @@ def test_pdf_has_total_row_and_title(tmp_path):
     # pypdf cannot round-trip the em-dash from the WinAnsi content stream, so
     # assert the title's extractable components rather than the exact string.
     assert "M&U" in text
+    assert "M&U;" not in text
     assert "Jan-26 to Mar-26" in text
     assert "Generated on" in text
     # grand total = 5 rows x 3 months x (1+2+3+4+5) = 3 * 15 = 45

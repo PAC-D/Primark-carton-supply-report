@@ -109,14 +109,17 @@ def main():
     st.dataframe(df, use_container_width=True, hide_index=True)
 
     title = (pkg if pkg_sel else "All suppliers") + f" \u2014 {month_label(frm)} to {month_label(to)}"
-    buf = io.BytesIO()
-    render_pdf(df, title, buf)
-    st.download_button(
-        "Export PDF",
-        data=buf.getvalue(),
-        file_name="carton-report.pdf",
-        mime="application/pdf",
-    )
+    try:
+        buf = io.BytesIO()
+        render_pdf(df, title, buf)
+        st.download_button(
+            "Export PDF",
+            data=buf.getvalue(),
+            file_name="carton-report.pdf",
+            mime="application/pdf",
+        )
+    except Exception as exc:
+        st.error(f"PDF generation failed: {exc}")
 
 
 main()
