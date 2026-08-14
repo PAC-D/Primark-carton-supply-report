@@ -1,0 +1,122 @@
+import datetime
+import io
+from pathlib import Path
+
+import streamlit as st
+
+from filtering import (
+    build_table,
+    clamp_duration,
+    default_duration,
+    factories_for,
+    month_label,
+    packaging_suppliers,
+    suppliers_for,
+)
+from loader import load_records
+from pdf import render_pdf
+
+WORKBOOK = Path(__file__).parent / "Sales Record V1.xlsx"
+
+
+@st.cache_data(show_spinner="Reading workbook...")
+def load(path_str):
+    return load_records(path_str)
+
+
+def main():
+    st.set_page_config(page_title="Primark Carton Supply Report", layout="wide")
+    st.title("Primark Carton Supply Report")
+
+    refresh_col, info_col = st.columns([1, 4])
+    with refresh_col:
+        if st.button("Refresh data"):
+            load.clear()
+            st.rerun()
+    with info_col:
+        st.caption(f"Workbook: {WORKBOOK.name}")
+
+    if not WORKBOOK.exists():
+        st.error(f"Workbook not found at {WORKBOOK}. Place 'Sales Record V1.xlsx' next to app.py.")
+        return
+    try:
+        records, warnings = load(str(WORKBOOK))
+    except Exception as exc:
+        st.error(f"Couldn't read the workbook. Is it open in Excel? ({exc})")
+        return
+
+    if warnings:
+        st.warning("Skipped sheets (no month columns): " + ", ".join(sorted(warnings)))
+    if not records:
+        st.info("No data found in the workbook.")
+        return
+
+    duration = default_duration(records)
+    from_default = datetime.date(duration[0][0], duration[0][1], 1)
+    to_default = datetime.date(duration[1][0], duration[1][1], 1)
+
+    f1, f2, f3, f4, f5 = st.columns([2, 3, 3, 2, 2])
+    with f1:
+        pkg = st.selectbox("Packaging Supplier", ["All"] + packaging_suppliers(records))
+    pkg_sel = None if pkg == "All" else pkg
+
+    with f2:
+        sups = suppliers_for(records, pkg_sel)
+        sup = st.selectbox("Supplier", ["All"] + sups)
+    sup_sel = None if sup == "All" else sup
+
+    with f3:
+        facs = factories_for(records, pkg_sel, sup_sel)
+        fac = st.selectbox("Factory", ["All"] + facs)
+    fac_sel = None if fac == "All" else fac
+
+    with f4:
+        from_date = st.date_input(
+            "From", value=from_default, min_value=datetime.date(2020, 1, 1), max_value=to_default
+        )
+    with f5:
+        to_date = st.date_input(
+            "To", value=to_default, min_value=datetime.date(2020, 1, 1), max_value=to_default
+        )
+
+    frm = (from_date.year, from_date.month)
+    to = (to_date.year, to_date.month)
+    if frm > to:
+        frm, to = to, frm
+    clamped_frm, clamped_to = clamp_duration(frm, to)
+    if (clamped_frm, clamped_to) != (frm, to):
+        st.caption(f"Range capped at 24 months — showing {month_label(clamped_frm)} to {month_label(clamped_to)}.")
+    frm, to = clamped_frm, clamped_to
+
+    df = build_table(
+        records,
+        packaging_supplier=pkg_sel,
+        supplier=sup_sel,
+        factory=fac_sel,
+        frm=frm,
+        to=to,
+    )
+
+    st.caption(
+        f"{len(df):,} rows \u00b7 {len(df.columns) - 3} months "
+        f"\u00b7 {month_label(frm)} to {month_label(to)}"
+    )
+
+    if df.empty:
+        st.info("No data for the selected filters.")
+        return
+
+    st.dataframe(df, use_container_width=True, hide_index=True)
+
+    title = (pkg if pkg_sel else "All suppliers") + f" \u2014 {month_label(frm)} to {month_label(to)}"
+    buf = io.BytesIO()
+    render_pdf(df, title, buf)
+    st.download_button(
+        "Export PDF",
+        data=buf.getvalue(),
+        file_name="carton-report.pdf",
+        mime="application/pdf",
+    )
+
+
+main()
