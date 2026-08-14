@@ -486,10 +486,12 @@ def test_default_duration_empty():
 
 
 def test_default_duration_less_than_24():
+    # Spec: default is ALWAYS the latest 24 months, even when data is sparse.
     records = [rec(2026, 1), rec(2026, 2), rec(2026, 3)]
     frm, to = default_duration(records)
-    assert frm == (2026, 1)
+    assert frm == (2024, 4)
     assert to == (2026, 3)
+    assert key_of(to) - key_of(frm) + 1 == 24
 
 
 def test_clamp_duration_max_24():
@@ -642,7 +644,7 @@ def test_build_table_default_duration():
 def test_build_table_empty_records():
     df = build_table([])
     assert df.empty
-    assert df.columns.tolist() == ["Packaging Supplier", "Supplier", "Factory"]
+    assert df.columns.tolist() == ["Packaging Supplier", "Supplier", "Factory", "Total"]
 
 
 def test_build_table_month_beyond_data_is_zero():
