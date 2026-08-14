@@ -10,11 +10,11 @@ from pdf import render_pdf
 
 def make_df(rows=200, months=26):
     periods = [(2024 + (8 + i - 1) // 12, (8 + i - 1) % 12 + 1) for i in range(months)]
-    cols = ["Packaging Supplier", "Supplier", "Factory"] + [month_label(p) for p in periods] + ["Total"]
+    cols = ["SL", "Packaging Supplier", "Supplier", "Factory"] + [month_label(p) for p in periods] + ["Total"]
     data = []
     for i in range(rows):
         vals = [i + 1] * months
-        data.append(["M&U", f"Supplier {i % 10}", f"Factory {i}", *vals, sum(vals)])
+        data.append([i + 1, "M&U", f"Supplier {i % 10}", f"Factory {i}", *vals, sum(vals)])
     return pd.DataFrame(data, columns=cols)
 
 
@@ -41,6 +41,13 @@ def test_pdf_has_total_row_and_title(tmp_path):
     assert "Generated on" in text
     # grand total = 5 rows x 3 months x (1+2+3+4+5) = 3 * 15 = 45
     assert "45" in text
+
+
+def test_pdf_has_sl_column(tmp_path):
+    path = tmp_path / "out.pdf"
+    render_pdf(make_df(rows=5, months=3), "M&U — Jan-26 to Mar-26", path)
+    text = "".join(page.extract_text() or "" for page in PdfReader(str(path)).pages)
+    assert "SL" in text
 
 
 def test_pdf_empty_table(tmp_path):

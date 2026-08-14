@@ -15,6 +15,8 @@ TOTAL_BG = colors.HexColor("#E2EFDA")
 FONT_SIZE = 8
 MONTH_COL_WIDTH = 16 * mm
 
+LABEL_COLUMNS = ("SL", "Packaging Supplier", "Supplier", "Factory")
+
 TITLE_STYLE = ParagraphStyle(
     "ReportTitle", fontName="Helvetica-Bold", fontSize=14, leading=17, spaceAfter=2
 )
@@ -46,15 +48,15 @@ def render_pdf(df, title, out):
         sums = df.sum(numeric_only=True)
         total_row = []
         for c in columns:
-            if c in ("Packaging Supplier", "Supplier", "Factory"):
+            if c in LABEL_COLUMNS:
                 total_row.append("Total" if c == "Packaging Supplier" else "")
             else:
                 total_row.append(_fmt(sums[c]))
         data.append(total_row)
 
     widths = (
-        [_label_width([row[i] for row in data]) for i in range(3)]
-        + [MONTH_COL_WIDTH] * (len(columns) - 3)
+        [_label_width([row[i] for row in data]) for i in range(4)]
+        + [MONTH_COL_WIDTH] * (len(columns) - 4)
     )
     doc = SimpleDocTemplate(
         out,
