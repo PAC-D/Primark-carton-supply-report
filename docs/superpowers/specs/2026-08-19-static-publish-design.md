@@ -27,7 +27,7 @@ The tool is a local Streamlit app. The user wants colleagues at PacD and externa
    - Footer: "Data as of <publish timestamp>" from `site-manifest.json`
    - Empty data: "No data" message like the app
    - SheetJS CDN unavailable: clear "Excel export unavailable" message, no silent failure
-4. **Branch** — `main` (rename local `master` with `git branch -m master main` during setup)
+4. **Branch** — `main` (done: local branch renamed from `master`)
 5. **README** — document: one-time setup (create repo, push `main`, enable Pages → "Deploy from a branch" → `main` / `/docs`), and the publish flow
 
 ## Behavior Details
