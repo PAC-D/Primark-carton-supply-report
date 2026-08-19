@@ -849,7 +849,7 @@ Append to `README.md`:
 2. Push to go live: `git push`.
 3. The site shows "Data as of <publish timestamp>" so visitors know how fresh it is.
 
-The published page mirrors the app: same filters (Packaging Supplier, Supplier, Factory, month range), SL column, and an Export Excel button (built in the browser via SheetJS). Anyone with the link can view and download the data.
+The published page mirrors the app: same filters (Packaging Supplier, Supplier, Factory, month range), SL column, and an Export Excel button (full styled .xlsx built in the browser via ExcelJS). Anyone with the link can view and download the data.
 ```
 
 - [ ] **Step 2: Verify docs render**
