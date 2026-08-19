@@ -104,38 +104,65 @@
   function exportExcel() {
     var view = CartLogic.buildView(state.data, state);
     var wb = CartLogic.toWorkbookData(view, titleOf());
-    var ws = XLSX.utils.aoa_to_sheet(wb.rows);
-    ws["!cols"] = wb.widths.map(function (w) { return { wch: w }; });
-    var HEADER_BG = "D9E2F3", TOTAL_BG = "E2EFDA";
+    var workbook = new ExcelJS.Workbook();
+    var sheet = workbook.addWorksheet("Report");
+    var HEADER_BG = { argb: "FFD9E2F3" }, TOTAL_BG = { argb: "FFE2EFDA" };
     var BORDER = {
-      top: { style: "thin", color: { rgb: "BFBFBF" } },
-      bottom: { style: "thin", color: { rgb: "BFBFBF" } },
-      left: { style: "thin", color: { rgb: "BFBFBF" } },
-      right: { style: "thin", color: { rgb: "BFBFBF" } }
+      top: { style: "thin", color: { argb: "FFBFBFBF" } },
+      bottom: { style: "thin", color: { argb: "FFBFBFBF" } },
+      left: { style: "thin", color: { argb: "FFBFBFBF" } },
+      right: { style: "thin", color: { argb: "FFBFBFBF" } }
     };
-    var headerRow = 0, totalRow = wb.rows.length - 1;
-    wb.columns.forEach(function (_, c) {
-      var headerCell = ws[XLSX.utils.encode_cell({ r: headerRow, c: c })];
-      headerCell.s = { font: { bold: true }, fill: { fgColor: { rgb: HEADER_BG } }, alignment: { horizontal: "center" }, border: BORDER };
-      var totalCell = ws[XLSX.utils.encode_cell({ r: totalRow, c: c })];
-      totalCell.s = { font: { bold: true }, fill: { fgColor: { rgb: TOTAL_BG } }, border: BORDER };
+    var headerRow = 2, totalRow = wb.rows.length + 1;
+    sheet.mergeCells(1, 1, 1, wb.columns.length);
+    var titleCell = sheet.getCell(1, 1);
+    titleCell.value = wb.title;
+    titleCell.font = { bold: true, size: 14 };
+    wb.columns.forEach(function (name, c) {
+      var headerCell = sheet.getCell(headerRow, c + 1);
+      headerCell.value = name;
+      headerCell.font = { bold: true };
+      headerCell.fill = { type: "pattern", pattern: "solid", fgColor: HEADER_BG };
+      headerCell.alignment = { horizontal: "center" };
+      headerCell.border = BORDER;
+      var totalCell = sheet.getCell(totalRow, c + 1);
+      totalCell.value = wb.rows[wb.rows.length - 1][c];
+      totalCell.font = { bold: true };
+      totalCell.fill = { type: "pattern", pattern: "solid", fgColor: TOTAL_BG };
+      totalCell.border = BORDER;
     });
-    for (var r = 1; r < totalRow; r++) {
+    for (var r = 1; r < wb.rows.length - 1; r++) {
       for (var c = 0; c < wb.columns.length; c++) {
-        var cell = ws[XLSX.utils.encode_cell({ r: r, c: c })];
-        cell.s = { alignment: { horizontal: c >= 4 ? "right" : "left" }, border: BORDER };
+        var cell = sheet.getCell(r + 2, c + 1);
+        cell.value = wb.rows[r][c];
+        cell.alignment = { horizontal: c >= 4 ? "right" : "left" };
+        cell.border = BORDER;
       }
     }
-    var book = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(book, ws, "Report");
-    XLSX.writeFile(book, "carton-report.xlsx");
+    wb.widths.forEach(function (w, c) {
+      sheet.getColumn(c + 1).width = w;
+    });
+    sheet.views = [{ state: "frozen", ySplit: 2 }];
+    workbook.xlsx.writeBuffer().then(function (buffer) {
+      var blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "carton-report.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }).catch(function (err) {
+      byId("export-error").textContent = "Excel export unavailable: " + err.message;
+    });
   }
 
   function init() {
     byId("export").addEventListener("click", function () {
       byId("export-error").textContent = "";
       try {
-        if (typeof XLSX === "undefined") {
+        if (typeof ExcelJS === "undefined") {
           throw new Error("Excel library could not be loaded (CDN unreachable).");
         }
         exportExcel();
