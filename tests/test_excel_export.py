@@ -43,11 +43,15 @@ def test_excel_export_styling(tmp_path):
     df = make_df(rows=4, months=3)
     render_excel(df, "M&U — Jan-26 to Mar-26", path)
     ws = openpyxl.load_workbook(path)["Report"]
+    assert ws["A1"].font.bold
+    assert ws["A1"].font.color.rgb.endswith("00205B")
     assert ws["A2"].font.bold
-    assert ws["A2"].fill.start_color.rgb.endswith("D9E2F3")
+    assert ws["A2"].font.color.rgb.endswith("FFFFFF")
+    assert ws["A2"].fill.start_color.rgb.endswith("00205B")
     assert ws["B7"].value == "Total"
     assert ws["B7"].font.bold
-    assert ws["B7"].fill.start_color.rgb.endswith("E2EFDA")
+    assert ws["B7"].font.color.rgb.endswith("00205B")
+    assert ws["B7"].fill.start_color.rgb.endswith("D9E2F3")
     assert ws["A3"].border.left.style == "thin"
     values = df["Supplier"].astype(str).tolist() + ["Supplier", ""]
     expected = min(max(len(v) for v in values) + 2, 40)

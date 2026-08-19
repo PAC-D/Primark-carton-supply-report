@@ -6,8 +6,11 @@ from openpyxl.utils import get_column_letter
 
 from filtering import BASE_COLUMNS
 
-HEADER_BG = "D9E2F3"
-TOTAL_BG = "E2EFDA"
+HEADER_BG = "00205B"
+TOTAL_BG = "D9E2F3"
+TITLE_COLOR = "00205B"
+HEADER_COLOR = "FFFFFF"
+TOTAL_COLOR = "00205B"
 THIN = Side(style="thin", color="BFBFBF")
 BORDER = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
 
@@ -47,11 +50,11 @@ def render_excel(df, title, out):
     ws.title = "Report"
     ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(columns))
     title_cell = ws.cell(row=1, column=1, value=title)
-    title_cell.font = Font(bold=True, size=14)
+    title_cell.font = Font(bold=True, size=14, color=TITLE_COLOR)
 
     for c, value in enumerate(data[0], start=1):
         cell = ws.cell(row=2, column=c, value=value)
-        cell.font = Font(bold=True)
+        cell.font = Font(bold=True, color=HEADER_COLOR)
         cell.fill = PatternFill("solid", fgColor=HEADER_BG)
         cell.border = BORDER
         cell.alignment = Alignment(horizontal="center")
@@ -67,7 +70,7 @@ def render_excel(df, title, out):
         last = ws.max_row
         for c in range(1, len(columns) + 1):
             cell = ws.cell(row=last, column=c)
-            cell.font = Font(bold=True)
+            cell.font = Font(bold=True, color=TOTAL_COLOR)
             cell.fill = PatternFill("solid", fgColor=TOTAL_BG)
 
     for c in range(1, len(columns) + 1):
