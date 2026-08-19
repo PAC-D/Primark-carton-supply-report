@@ -16,3 +16,25 @@ Double-click `start.bat` (first run installs dependencies). The app opens in you
 ## Notes
 
 - A row is only read if its column A holds a number; rows with blank column A are skipped. (Subtotal rows such as "Total Fashion PJT" do have numbers and therefore appear in the report.)
+
+## Publish to GitHub Pages
+
+### One-time setup
+
+1. Rename branch and push the repo to GitHub:
+
+   ```bash
+   git remote add origin https://github.com/<user>/<repo>.git
+   git push -u origin main
+   ```
+
+2. On GitHub: repo → Settings → Pages → Source: "Deploy from a branch" → Branch `main` / `/docs` → Save.
+3. The site is live at `https://<user>.github.io/<repo>/site/`.
+
+### Publish (every time data changes)
+
+1. Open the app (`start.bat`), click **Publish site**. This regenerates `docs/site/` and commits it with a message like `Updated at 2026-08-19 14:30`.
+2. Push to go live: `git push`.
+3. The site shows "Data as of <publish timestamp>" so visitors know how fresh it is.
+
+The published page mirrors the app: same filters (Packaging Supplier, Supplier, Factory, month range), SL column, and an Export Excel button (full styled .xlsx built in the browser via ExcelJS). Anyone with the link can view and download the data.
