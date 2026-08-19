@@ -1,5 +1,6 @@
 import datetime
 import json
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -37,6 +38,9 @@ def publish_site(records, out_dir, now):
         (out_dir / name).write_text(
             (TEMPLATE_DIR / name).read_text(encoding="utf-8"), encoding="utf-8"
         )
+    for name in ("css/style.css", "favicon.png", "pacd.png", "assets/primark-logo.png"):
+        (out_dir / name).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(TEMPLATE_DIR / name, out_dir / name)
     return out_dir
 
 

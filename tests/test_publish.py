@@ -61,6 +61,13 @@ def test_publish_copies_templates(tmp_path):
         assert (out / name).read_text(encoding="utf-8") == (PROJECT_ROOT / "site_template" / name).read_text(encoding="utf-8")
 
 
+def test_publish_copies_assets(tmp_path):
+    out = publish_site(make_records(), tmp_path / "site", datetime.datetime(2026, 8, 19, 14, 30))
+    for name in ("css/style.css", "favicon.png", "pacd.png", "assets/primark-logo.png"):
+        assert (out / name).exists()
+        assert (out / name).read_bytes() == (PROJECT_ROOT / "site_template" / name).read_bytes()
+
+
 def _git(repo, *args):
     return subprocess.run(
         ["git", *args], cwd=repo, capture_output=True, text=True, check=True
