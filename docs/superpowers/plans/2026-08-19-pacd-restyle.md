@@ -146,6 +146,7 @@ In `site_template/logic.js`, add the member to the returned object literal (line
       totalColor: "FF00205B"
     }
   };
+```
 
 - [ ] **Step 4: Consume the constants in app.js**
 
