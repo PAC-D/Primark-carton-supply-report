@@ -15,6 +15,7 @@ from filtering import (
 )
 from loader import load_records
 from excel_export import render_excel
+from publish import commit_site, publish_site
 
 WORKBOOK = Path(__file__).parent / "Sales Record V1.xlsx"
 
@@ -50,6 +51,19 @@ def main():
     if not records:
         st.info("No data found in the workbook.")
         return
+
+    if st.button("Publish site"):
+        try:
+            out_dir = Path(__file__).parent / "docs" / "site"
+            now = datetime.datetime.now()
+            publish_site(records, out_dir, now)
+            commit_site(Path(__file__).parent, "docs/site", now)
+            st.success(
+                f"Site published and committed as 'Updated at {now:%Y-%m-%d %H:%M}'. "
+                "Push to GitHub to go live."
+            )
+        except Exception as exc:
+            st.error(f"Publish failed: {exc}")
 
     duration = default_duration(records)
     from_default = datetime.date(duration[0][0], duration[0][1], 1)
