@@ -148,6 +148,8 @@
     widgets.pkg.setOptions(opts.packagingSuppliers);
     widgets.sup.setOptions(opts.suppliers);
     widgets.fac.setOptions(opts.factories);
+    widgets.sup.setSelection(state.sup);
+    widgets.fac.setSelection(state.fac);
   }
 
   function render() {
