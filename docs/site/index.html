@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Primark Carton Supply Report</title>
+  <style>
+    body { font-family: -apple-system, "Segoe UI", Arial, sans-serif; margin: 24px; color: #222; }
+    h1 { font-size: 24px; }
+    .filters { display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0; }
+    .filters fieldset { border: 1px solid #ccc; border-radius: 6px; padding: 8px 12px; }
+    .filters select { display: block; min-width: 180px; margin-top: 4px; }
+    .caption { color: #555; margin: 8px 0; }
+    .footer { color: #888; font-size: 12px; margin-top: 16px; }
+    button { padding: 6px 14px; font-size: 14px; }
+    table { border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+    th, td { border: 1px solid #ccc; padding: 4px 10px; text-align: right; white-space: nowrap; }
+    th:not(:first-child), th:nth-child(2) { text-align: left; }
+    th { background: #d9e2f3; }
+    td:first-child, td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: left; }
+    .error { color: #b00020; }
+  </style>
+</head>
+<body>
+  <h1>Primark Carton Supply Report</h1>
+  <div class="filters">
+    <fieldset id="pkg-field"><legend>Packaging Supplier</legend><select id="pkg" multiple size="6"></select></fieldset>
+    <fieldset id="sup-field"><legend>Supplier</legend><select id="sup" multiple size="6"></select></fieldset>
+    <fieldset id="fac-field"><legend>Factory</legend><select id="fac" multiple size="6"></select></fieldset>
+    <fieldset><legend>From</legend><select id="from"></select></fieldset>
+    <fieldset><legend>To</legend><select id="to"></select></fieldset>
+  </div>
+  <button id="export">Export Excel</button>
+  <div id="caption" class="caption"></div>
+  <div id="table"></div>
+  <div id="export-error" class="error"></div>
+  <div id="data-error" class="error"></div>
+  <div class="footer" id="footer"></div>
+  <script src="logic.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
