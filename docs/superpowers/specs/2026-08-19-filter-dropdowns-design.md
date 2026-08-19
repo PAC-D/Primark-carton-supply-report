@@ -55,22 +55,19 @@ Replace each of the three list boxes with a widget container; From/To
 selects are untouched:
 
 ```html
-<div class="filter-widget" id="pkg-widget" data-option-key="pkg">
+<div class="form-group filter-widget" id="pkg-widget">
   <label class="select-label">Packaging Supplier</label>
   <button type="button" class="filter-trigger" aria-haspopup="listbox" aria-expanded="false">
     <span class="filter-summary">All</span>
-    <span class="filter-chevron" aria-hidden="true"></span>
   </button>
   <div class="filter-panel" role="listbox" hidden>
-    <label class="filter-all">
-      <input type="checkbox" checked> Select all
-    </label>
+    <label class="filter-all"><input type="checkbox" checked> Select all</label>
     <div class="filter-options"></div>
   </div>
 </div>
 ```
 
-(`sup-widget`, `fac-widget` identical with their own `data-option-key`.)
+(`sup-widget`, `fac-widget` identical with their own `id`.)
 
 ### Behavior (app.js — new `makeFilterWidget` factory)
 

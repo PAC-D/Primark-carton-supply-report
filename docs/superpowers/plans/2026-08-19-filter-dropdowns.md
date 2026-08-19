@@ -368,6 +368,8 @@ Replace `refreshOptions` (lines 58-66) with:
     widgets.pkg.setOptions(opts.packagingSuppliers);
     widgets.sup.setOptions(opts.suppliers);
     widgets.fac.setOptions(opts.factories);
+    widgets.sup.setSelection(state.sup);
+    widgets.fac.setSelection(state.fac);
   }
 ```
 
@@ -435,7 +437,7 @@ Run one-off publish from the project root using the existing machinery (replicat
 Set-Content -LiteralPath "$env:TEMP\publish_now.py" -Value @'
 from pathlib import Path
 import datetime
-from load_data import load_records
+from loader import load_records
 from publish import publish_site, commit_site
 
 root = Path(".")
