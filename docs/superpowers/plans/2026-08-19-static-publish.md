@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a "Publish site" button to the Streamlit app that generates a self-contained static site (filters + Excel export via SheetJS) into `docs/site/` and commits it with an "Updated at <timestamp>" message, so the user can push to GitHub Pages manually.
+**Goal:** Add a "Publish site" button to the Streamlit app that generates a self-contained static site (filters + Excel export via ExcelJS) into `docs/site/` and commits it with an "Updated at <timestamp>" message, so the user can push to GitHub Pages manually.
 
-**Architecture:** The existing Python parsing/filtering (`loader.py`, `filtering.py`) stays the single source of truth: `publish_site` (new `publish.py`) renders the full table once into `data.json`; a small JS library (`site_template/logic.js`, pure functions, tested with a plain Node script) re-implements only the *view* logic — chained filter options, SL renumbering, totals recompute, and the Excel grid builder. `site_template/app.js` + `index.html` provide the DOM wiring and SheetJS export. `commit_site` stages `docs/site` and commits with "Updated at YYYY-MM-DD HH:MM".
+**Architecture:** The existing Python parsing/filtering (`loader.py`, `filtering.py`) stays the single source of truth: `publish_site` (new `publish.py`) renders the full table once into `data.json`; a small JS library (`site_template/logic.js`, pure functions, tested with a plain Node script) re-implements only the *view* logic — chained filter options, SL renumbering, totals recompute, and the Excel grid builder. `site_template/app.js` + `index.html` provide the DOM wiring and the ExcelJS export. `commit_site` stages `docs/site` and commits with "Updated at YYYY-MM-DD HH:MM".
 
-**Tech Stack:** Python (pandas, openpyxl, subprocess git), plain JavaScript (no framework, no build tools), ExcelJS via CDN (full cell styling on write — SheetJS Community Edition silently drops styles, verified empirically; user chose full styling), Node for the JS smoke test, pytest.
+**Tech Stack:** Python (pandas, openpyxl, subprocess git), plain JavaScript (no framework, no build tools), ExcelJS via CDN (full cell styling on write — the community spreadsheet library drops styles on write, verified empirically; user chose full styling), Node for the JS smoke test, pytest.
 
 ## Global Constraints
 
@@ -17,7 +17,7 @@
 - No access control on the published page; anyone may view/download (user-approved).
 - Python parsing is never re-implemented in JS — only the view logic is.
 - JS test = plain Node script run manually; no JS test framework or npm added to the repo.
-- Excel export in the browser mirrors `render_excel` via ExcelJS (CDN, pinned version): title bold 14pt merged across all columns, header bold + `D9E2F3` fill centered, thin `BFBFBF` borders on all cells, right-aligned numeric columns, totals row bold + `E2EFDA` fill with "Total" label in the Packaging Supplier cell, column widths capped at 40, freeze panes A3, whole numbers. (User decision 2026-08-19: full styling required; SheetJS CE cannot write styles.)
+- Excel export in the browser mirrors `render_excel` via ExcelJS (CDN, pinned version): title bold 14pt merged across all columns, header bold + `D9E2F3` fill centered, thin `BFBFBF` borders on all cells, right-aligned numeric columns, totals row bold + `E2EFDA` fill with "Total" label in the Packaging Supplier cell, column widths capped at 40, freeze panes A3, whole numbers. (User decision 2026-08-19: full styling required; community spreadsheet libraries cannot write styles.)
 - Numbers: whole via `Math.round` (JS half-up vs Python banker's on exact .5 — accepted).
 
 ---
@@ -489,7 +489,7 @@ git commit -m "feat: pure JS view logic with node smoke test"
 
 **Interfaces:**
 - Consumes: `CartLogic` (from Task 2), `data.json` + `site-manifest.json` (Task 1 schema)
-- Produces: the visitor-facing page — filter UI (3 multiselects, From/To month selects), SL-numbered table, caption, Export Excel via SheetJS CDN, "Data as of" footer, "No data" and "Excel export unavailable" states.
+- Produces: the visitor-facing page — filter UI (3 multiselects, From/To month selects), SL-numbered table, caption, Export Excel via ExcelJS CDN (pinned version), "Data as of" footer, "No data" and "Excel export unavailable" states.
 
 - [ ] **Step 1: Write index.html**
 
@@ -535,207 +535,19 @@ Create `site_template/index.html`:
   <div id="data-error" class="error"></div>
   <div class="footer" id="footer"></div>
   <script src="logic.js"></script>
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
 ```
 
+Note: the committed `site_template/index.html` is authoritative — it already ships the ExcelJS export via the pinned CDN version above; do not replace it with the earlier community spreadsheet-library tag.
+
 - [ ] **Step 2: Write app.js**
 
 Create `site_template/app.js`:
 
-```javascript
-(function () {
-  "use strict";
-
-  var DATA_URL = "data.json";
-  var MANIFEST_URL = "site-manifest.json";
-
-  var state = {
-    data: null,
-    pkg: [],
-    sup: [],
-    fac: [],
-    fromKey: 0,
-    toKey: 0
-  };
-
-  function byId(id) {
-    return document.getElementById(id);
-  }
-
-  function fillSelect(el, values, selected) {
-    el.innerHTML = "";
-    values.forEach(function (v) {
-      var opt = document.createElement("option");
-      opt.value = v;
-      opt.textContent = v;
-      opt.selected = selected.indexOf(v) >= 0;
-      el.appendChild(opt);
-    });
-  }
-
-  function fillMonths() {
-    var from = byId("from"), to = byId("to");
-    from.innerHTML = "";
-    to.innerHTML = "";
-    state.data.months.forEach(function (period) {
-      var label = CartLogic.monthLabel(period);
-      ["from", "to"].forEach(function (id) {
-        var opt = document.createElement("option");
-        opt.value = CartLogic.keyOf(period);
-        opt.textContent = label;
-        byId(id).appendChild(opt);
-      });
-    });
-    from.value = String(state.data.months.length ? CartLogic.keyOf(state.data.months[0]) : 0);
-    to.value = String(state.data.months.length ? CartLogic.keyOf(state.data.months[state.data.months.length - 1]) : 0);
-    state.fromKey = Number(from.value);
-    state.toKey = Number(to.value);
-  }
-
-  function readSelections() {
-    state.pkg = Array.prototype.slice.call(byId("pkg").selectedOptions).map(function (o) { return o.value; });
-    state.sup = Array.prototype.slice.call(byId("sup").selectedOptions).map(function (o) { return o.value; });
-    state.fac = Array.prototype.slice.call(byId("fac").selectedOptions).map(function (o) { return o.value; });
-    state.fromKey = Number(byId("from").value);
-    state.toKey = Number(byId("to").value);
-  }
-
-  function refreshOptions() {
-    var opts = CartLogic.options(state.data, { pkg: state.pkg, sup: state.sup, fac: state.fac });
-    fillSelect(byId("pkg"), opts.packagingSuppliers, state.pkg);
-    fillSelect(byId("sup"), opts.suppliers, state.sup);
-    fillSelect(byId("fac"), opts.factories, state.fac);
-  }
-
-  function render() {
-    var view = CartLogic.buildView(state.data, state);
-    var caption = byId("caption");
-    var container = byId("table");
-    if (!view.rows.length) {
-      caption.textContent = "";
-      container.innerHTML = "<p>No data for the selected filters.</p>";
-      byId("export").disabled = true;
-      return;
-    }
-    var frmLabel = CartLogic.monthLabel(view.months[0]);
-    var toLabel = CartLogic.monthLabel(view.months[view.months.length - 1]);
-    caption.textContent = view.rows.length.toLocaleString() + " rows \u00b7 " +
-      view.months.length + " months \u00b7 " + frmLabel + " to " + toLabel;
-    var html = "<table><thead><tr>";
-    view.columns.forEach(function (c) {
-      html += "<th>" + c + "</th>";
-    });
-    html += "</tr></thead><tbody>";
-    view.rows.forEach(function (r) {
-      html += "<tr>";
-      r.forEach(function (v, i) {
-        var text = i < 4 ? String(v) : Math.round(v).toLocaleString();
-        html += "<td>" + text + "</td>";
-      });
-      html += "</tr>";
-    });
-    html += "</tbody></table>";
-    container.innerHTML = html;
-    byId("export").disabled = false;
-  }
-
-  function titleOf() {
-    var pkg = state.pkg.length ? state.pkg.join(", ") : "All suppliers";
-    var fromLabel = CartLogic.monthLabel(CartLogic.periodOf(state.fromKey));
-    var toLabel = CartLogic.monthLabel(CartLogic.periodOf(state.toKey));
-    return pkg + " \u2014 " + fromLabel + " to " + toLabel;
-  }
-
-  function exportExcel() {
-    var view = CartLogic.buildView(state.data, state);
-    var wb = CartLogic.toWorkbookData(view, titleOf());
-    var ws = XLSX.utils.aoa_to_sheet(wb.rows);
-    ws["!cols"] = wb.widths.map(function (w) { return { wch: w }; });
-    var HEADER_BG = "D9E2F3", TOTAL_BG = "E2EFDA";
-    var BORDER = {
-      top: { style: "thin", color: { rgb: "BFBFBF" } },
-      bottom: { style: "thin", color: { rgb: "BFBFBF" } },
-      left: { style: "thin", color: { rgb: "BFBFBF" } },
-      right: { style: "thin", color: { rgb: "BFBFBF" } }
-    };
-    var headerRow = 0, totalRow = wb.rows.length - 1;
-    wb.columns.forEach(function (_, c) {
-      var headerCell = ws[XLSX.utils.encode_cell({ r: headerRow, c: c })];
-      headerCell.s = { font: { bold: true }, fill: { fgColor: { rgb: HEADER_BG } }, alignment: { horizontal: "center" }, border: BORDER };
-      var totalCell = ws[XLSX.utils.encode_cell({ r: totalRow, c: c })];
-      totalCell.s = { font: { bold: true }, fill: { fgColor: { rgb: TOTAL_BG } }, border: BORDER };
-    });
-    for (var r = 1; r < totalRow; r++) {
-      for (var c = 0; c < wb.columns.length; c++) {
-        var cell = ws[XLSX.utils.encode_cell({ r: r, c: c })];
-        cell.s = { alignment: { horizontal: c >= 4 ? "right" : "left" }, border: BORDER };
-      }
-    }
-    var book = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(book, ws, "Report");
-    XLSX.writeFile(book, "carton-report.xlsx");
-  }
-
-  function init() {
-    byId("export").addEventListener("click", function () {
-      byId("export-error").textContent = "";
-      try {
-        if (typeof XLSX === "undefined") {
-          throw new Error("Excel library could not be loaded (CDN unreachable).");
-        }
-        exportExcel();
-      } catch (err) {
-        byId("export-error").textContent = "Excel export unavailable: " + err.message;
-      }
-    });
-
-    ["pkg", "sup", "fac"].forEach(function (id) {
-      byId(id).addEventListener("change", function () {
-        readSelections();
-        refreshOptions();
-        render();
-      });
-    });
-    ["from", "to"].forEach(function (id) {
-      byId(id).addEventListener("change", function () {
-        readSelections();
-        if (state.fromKey > state.toKey) {
-          var tmp = state.fromKey;
-          state.fromKey = state.toKey;
-          state.toKey = tmp;
-          byId("from").value = String(state.fromKey);
-          byId("to").value = String(state.toKey);
-        }
-        render();
-      });
-    });
-
-    Promise.all([
-      fetch(DATA_URL).then(function (r) { return r.json(); }),
-      fetch(MANIFEST_URL).then(function (r) { return r.json(); })
-    ]).then(function (results) {
-      state.data = results[0];
-      var manifest = results[1];
-      byId("footer").textContent = "Data as of " + manifest.published;
-      if (!state.data.months.length) {
-        byId("caption").textContent = "No data found in the workbook.";
-        byId("export").disabled = true;
-        return;
-      }
-      fillMonths();
-      refreshOptions();
-      render();
-    }).catch(function (err) {
-      byId("data-error").textContent = "Could not load site data: " + err.message;
-    });
-  }
-
-  document.addEventListener("DOMContentLoaded", init);
-})();
-```
+> **No code block here by design.** The committed `site_template/app.js` is authoritative and must be copied as-is (ExcelJS export, pinned CDN — see Global Constraints). Earlier drafts used a different community spreadsheet library; do not resurrect that code. If `app.js` changes later, update it in `site_template/` directly and re-run `publish_site` to refresh `docs/site/`.
 
 - [ ] **Step 3: Verify locally in the browser**
 
@@ -750,7 +562,7 @@ Open http://localhost:8000 and manually verify:
 2. Selecting a Packaging Supplier narrows Supplier/Factory options (chained).
 3. From/To month range changes the month columns and Total values.
 4. Selecting nothing shows all rows; zero-total rows disappear when filtered to a month where they have no data (e.g., S2/F2 with Feb-26 only).
-5. Export Excel downloads `carton-report.xlsx`; open it and check: header row styled, totals row with "Total" label, whole numbers.
+5. Export Excel downloads `carton-report.xlsx`; open it and check the ExcelJS styling: title bold 14pt merged across all columns, header bold with `D9E2F3` fill, thin `BFBFBF` borders, totals row bold with `E2EFDA` fill and "Total" label, whole numbers.
 
 Note: `docs/site` won't exist until `publish_site` runs; generate it first with a one-off (imports `loader` directly — never `app`, which executes the Streamlit script on import):
 
@@ -762,7 +574,7 @@ python -c "import datetime, pathlib; import publish; from loader import load_rec
 
 ```bash
 git add site_template/index.html site_template/app.js
-git commit -m "feat: static site page with filters and SheetJS export"
+git commit -m "feat: static site page with filters and ExcelJS export"
 ```
 
 ---

@@ -17,16 +17,16 @@ The tool is a local Streamlit app. The user wants colleagues at PacD and externa
 2. **New module `publish.py`** — `publish_site(records, out_dir, now)` writes:
    - `index.html` — static shell: filter controls, table container, Export button, caption with "Data as of <publish timestamp>"
    - `data.json` — all table rows as JSON (from `build_table` with no filters)
-   - `app.js` — client-side filtering + SheetJS Excel generation (CDN)
+   - `app.js` — client-side filtering + ExcelJS Excel generation (CDN, pinned version)
    - `site-manifest.json` — publish timestamp, row count
 3. **Static page behavior (visitors)** — mirrors the app:
    - Filters: Packaging Supplier, Supplier, Factory (multi-select; empty = All), From/To month pickers (From > To swapped, same rule as app.py:86)
    - Table with SL column numbered 1, 2, 3... in current view
    - Caption: `<row count> rows · <month count> months · <from> to <to>`
-   - "Export Excel" builds the .xlsx in-browser with SheetJS: header row bold, totals row, whole-number formatting — matching `render_excel` output as closely as SheetJS allows
+   - "Export Excel" builds the .xlsx in-browser via ExcelJS (CDN, pinned version), mirroring `render_excel`: title bold 14pt merged across all columns, header bold + `D9E2F3` fill centered, thin `BFBFBF` borders on all cells, right-aligned numeric columns, totals row bold + `E2EFDA` fill with "Total" label in the Packaging Supplier cell, column widths capped at 40, freeze panes A3, whole numbers
    - Footer: "Data as of <publish timestamp>" from `site-manifest.json`
    - Empty data: "No data" message like the app
-   - SheetJS CDN unavailable: clear "Excel export unavailable" message, no silent failure
+   - ExcelJS CDN unavailable: clear "Excel export unavailable" message, no silent failure
 4. **Branch** — `main` (done: local branch renamed from `master`)
 5. **README** — document: one-time setup (create repo, push `main`, enable Pages → "Deploy from a branch" → `main` / `/docs`), and the publish flow
 
@@ -35,7 +35,7 @@ The tool is a local Streamlit app. The user wants colleagues at PacD and externa
 - Site URL: `https://<user>.github.io/<repo>/site/` (Pages serves the whole `/docs` folder; existing superpowers docs are served as raw markdown, harmless)
 - `data.json` is committed to git (public data is accepted); `Sales Record V1.xlsx` stays gitignored
 - Workbook is ~267 KB; JSON of the flattened table is small (a few hundred KB max)
-- Publish button is disabled with explanatory text if the workbook is missing/unreadable
+- Publish button renders only after records load; the missing/unreadable-workbook path shows the existing app error (no separate disabled state)
 
 ## Files Touched
 
