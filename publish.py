@@ -26,6 +26,7 @@ def publish_site(records, out_dir, now):
     (out_dir / "data.json").write_text(
         json.dumps({"columns": columns, "months": months, "rows": rows}),
         encoding="utf-8",
+        newline="\n",
     )
     (out_dir / "site-manifest.json").write_text(
         json.dumps({
@@ -33,10 +34,13 @@ def publish_site(records, out_dir, now):
             "row_count": len(rows),
         }),
         encoding="utf-8",
+        newline="\n",
     )
     for name in ("index.html", "app.js", "logic.js"):
         (out_dir / name).write_text(
-            (TEMPLATE_DIR / name).read_text(encoding="utf-8"), encoding="utf-8"
+            (TEMPLATE_DIR / name).read_text(encoding="utf-8"),
+            encoding="utf-8",
+            newline="\n",
         )
     for name in ("css/style.css", "favicon.png", "pacd.png", "assets/primark-logo.png"):
         (out_dir / name).parent.mkdir(parents=True, exist_ok=True)
