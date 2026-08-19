@@ -109,7 +109,8 @@
     var wb = CartLogic.toWorkbookData(view, titleOf());
     var workbook = new ExcelJS.Workbook();
     var sheet = workbook.addWorksheet("Report");
-    var HEADER_BG = { argb: "FFD9E2F3" }, TOTAL_BG = { argb: "FFE2EFDA" };
+    var COLORS = CartLogic.WORKBOOK_COLORS;
+    var HEADER_BG = { argb: COLORS.headerBg }, TOTAL_BG = { argb: COLORS.totalBg };
     var BORDER = {
       top: { style: "thin", color: { argb: "FFBFBFBF" } },
       bottom: { style: "thin", color: { argb: "FFBFBFBF" } },
@@ -120,17 +121,17 @@
     sheet.mergeCells(1, 1, 1, wb.columns.length);
     var titleCell = sheet.getCell(1, 1);
     titleCell.value = wb.title;
-    titleCell.font = { bold: true, size: 14 };
+    titleCell.font = { bold: true, size: 14, color: { argb: COLORS.titleColor } };
     wb.columns.forEach(function (name, c) {
       var headerCell = sheet.getCell(headerRow, c + 1);
       headerCell.value = name;
-      headerCell.font = { bold: true };
+      headerCell.font = { bold: true, color: { argb: COLORS.headerColor } };
       headerCell.fill = { type: "pattern", pattern: "solid", fgColor: HEADER_BG };
       headerCell.alignment = { horizontal: "center" };
       headerCell.border = BORDER;
       var totalCell = sheet.getCell(totalRow, c + 1);
       totalCell.value = wb.rows[wb.rows.length - 1][c];
-      totalCell.font = { bold: true };
+      totalCell.font = { bold: true, color: { argb: COLORS.totalColor } };
       totalCell.fill = { type: "pattern", pattern: "solid", fgColor: TOTAL_BG };
       totalCell.border = BORDER;
     });
@@ -201,7 +202,7 @@
     ]).then(function (results) {
       state.data = results[0];
       var manifest = results[1];
-      byId("footer").textContent = "Data as of " + manifest.published;
+      byId("data-as-of").textContent = "Data as of " + manifest.published;
       if (!state.data.months.length) {
         byId("caption").textContent = "No data found in the workbook.";
         byId("export").disabled = true;
