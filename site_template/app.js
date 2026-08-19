@@ -202,7 +202,7 @@
     ]).then(function (results) {
       state.data = results[0];
       var manifest = results[1];
-      byId("footer").textContent = "Data as of " + manifest.published;
+      byId("data-as-of").textContent = "Data as of " + manifest.published;
       if (!state.data.months.length) {
         byId("caption").textContent = "No data found in the workbook.";
         byId("export").disabled = true;

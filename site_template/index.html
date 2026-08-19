@@ -4,38 +4,66 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Primark Carton Supply Report</title>
-  <style>
-    body { font-family: -apple-system, "Segoe UI", Arial, sans-serif; margin: 24px; color: #222; }
-    h1 { font-size: 24px; }
-    .filters { display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0; }
-    .filters fieldset { border: 1px solid #ccc; border-radius: 6px; padding: 8px 12px; }
-    .filters select { display: block; min-width: 180px; margin-top: 4px; }
-    .caption { color: #555; margin: 8px 0; }
-    .footer { color: #888; font-size: 12px; margin-top: 16px; }
-    button { padding: 6px 14px; font-size: 14px; }
-    table { border-collapse: collapse; font-size: 13px; margin-top: 8px; }
-    th, td { border: 1px solid #ccc; padding: 4px 10px; text-align: right; white-space: nowrap; }
-    th:not(:first-child), th:nth-child(2) { text-align: left; }
-    th { background: #d9e2f3; }
-    td:first-child, td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: left; }
-    .error { color: #b00020; }
-  </style>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <h1>Primark Carton Supply Report</h1>
-  <div class="filters">
-    <fieldset id="pkg-field"><legend>Packaging Supplier</legend><select id="pkg" multiple size="6"></select></fieldset>
-    <fieldset id="sup-field"><legend>Supplier</legend><select id="sup" multiple size="6"></select></fieldset>
-    <fieldset id="fac-field"><legend>Factory</legend><select id="fac" multiple size="6"></select></fieldset>
-    <fieldset><legend>From</legend><select id="from"></select></fieldset>
-    <fieldset><legend>To</legend><select id="to"></select></fieldset>
+  <div class="bg-decoration"></div>
+
+  <nav class="navbar">
+    <div class="logo-section">
+      <img src="pacd.png" alt="PACD Logo" class="logo-img">
+    </div>
+    <h1>Primark Carton Supply Report</h1>
+    <img src="assets/primark-logo.png" alt="Primark Logo" class="primark-logo">
+  </nav>
+
+  <div class="main-container">
+    <div class="calculator-card">
+      <div class="card-section">
+        <label class="section-label">Filters</label>
+        <div class="filter-grid">
+          <div class="form-group">
+            <label class="select-label" for="pkg">Packaging Supplier</label>
+            <select id="pkg" class="multi-select" multiple size="6"></select>
+          </div>
+          <div class="form-group">
+            <label class="select-label" for="sup">Supplier</label>
+            <select id="sup" class="multi-select" multiple size="6"></select>
+          </div>
+          <div class="form-group">
+            <label class="select-label" for="fac">Factory</label>
+            <select id="fac" class="multi-select" multiple size="6"></select>
+          </div>
+          <div class="form-group">
+            <label class="select-label" for="from">From</label>
+            <select id="from" class="custom-select"></select>
+          </div>
+          <div class="form-group">
+            <label class="select-label" for="to">To</label>
+            <select id="to" class="custom-select"></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="export-area">
+        <button id="export" class="primary-btn" disabled>Export Excel</button>
+      </div>
+      <p id="data-as-of" class="row-count"></p>
+      <p id="caption" class="row-count"></p>
+      <div id="table" class="table-container"></div>
+      <p id="export-error" class="error-box"></p>
+      <p id="data-error" class="error-box"></p>
+    </div>
   </div>
-  <button id="export">Export Excel</button>
-  <div id="caption" class="caption"></div>
-  <div id="table"></div>
-  <div id="export-error" class="error"></div>
-  <div id="data-error" class="error"></div>
-  <div class="footer" id="footer"></div>
+
+  <footer class="app-footer">
+    <p>&copy; 2026 PACD. All rights reserved. <span class="divider">|</span> Developed by <a href="https://ev1shoaib.netlify.app" target="_blank" class="developer-link">EV1</a></p>
+  </footer>
+
   <script src="logic.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <script src="app.js"></script>
