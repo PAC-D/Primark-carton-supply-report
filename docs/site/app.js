@@ -13,19 +13,104 @@
     toKey: 0
   };
 
+  var widgets = {};
+
   function byId(id) {
     return document.getElementById(id);
   }
 
-  function fillSelect(el, values, selected) {
-    el.innerHTML = "";
-    values.forEach(function (v) {
-      var opt = document.createElement("option");
-      opt.value = v;
-      opt.textContent = v;
-      opt.selected = selected.indexOf(v) >= 0;
-      el.appendChild(opt);
+  function makeFilterWidget(optionKey) {
+    var root = byId(optionKey + "-widget");
+    var trigger = root.querySelector(".filter-trigger");
+    var summary = root.querySelector(".filter-summary");
+    var panel = root.querySelector(".filter-panel");
+    var optionsBox = root.querySelector(".filter-options");
+    var allInput = root.querySelector(".filter-all input");
+    var optionValues = [];
+    var selection = [];
+    var onChange = null;
+
+    function updateSummary() {
+      summary.textContent = CartLogic.selectionSummary(selection);
+    }
+
+    function syncAllCheckbox() {
+      allInput.checked = selection.length === 0;
+    }
+
+    function rebuildRows() {
+      optionsBox.innerHTML = "";
+      optionValues.forEach(function (v) {
+        var row = document.createElement("label");
+        row.className = "filter-option";
+        var cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = selection.indexOf(v) >= 0;
+        row.appendChild(cb);
+        row.appendChild(document.createTextNode(v));
+        cb.addEventListener("change", function () {
+          var idx = selection.indexOf(v);
+          if (cb.checked && idx < 0) { selection.push(v); }
+          if (!cb.checked && idx >= 0) { selection.splice(idx, 1); }
+          syncAllCheckbox();
+          updateSummary();
+          if (onChange) { onChange(selection.slice()); }
+        });
+        optionsBox.appendChild(row);
+      });
+    }
+
+    function setOptions(values) {
+      optionValues = values.slice();
+      rebuildRows();
+    }
+
+    function setSelection(values) {
+      selection = values.slice();
+      syncAllCheckbox();
+      updateSummary();
+      rebuildRows();
+    }
+
+    function getSelection() {
+      return selection.slice();
+    }
+
+    function setOpen(open) {
+      panel.hidden = !open;
+      trigger.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+
+    trigger.addEventListener("click", function () {
+      setOpen(panel.hidden);
     });
+
+    allInput.addEventListener("change", function () {
+      if (allInput.checked) {
+        selection = [];
+      } else {
+        selection = optionValues.slice();
+      }
+      syncAllCheckbox();
+      updateSummary();
+      rebuildRows();
+      if (onChange) { onChange(selection.slice()); }
+    });
+
+    document.addEventListener("click", function (e) {
+      if (!root.contains(e.target)) { setOpen(false); }
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !panel.hidden) { setOpen(false); }
+    });
+
+    return {
+      setOptions: setOptions,
+      setSelection: setSelection,
+      getSelection: getSelection,
+      onChange: function (fn) { onChange = fn; }
+    };
   }
 
   function fillMonths() {
@@ -48,21 +133,21 @@
   }
 
   function readSelections() {
-    state.pkg = Array.prototype.slice.call(byId("pkg").selectedOptions).map(function (o) { return o.value; });
-    state.sup = Array.prototype.slice.call(byId("sup").selectedOptions).map(function (o) { return o.value; });
-    state.fac = Array.prototype.slice.call(byId("fac").selectedOptions).map(function (o) { return o.value; });
+    state.pkg = widgets.pkg.getSelection();
+    state.sup = widgets.sup.getSelection();
+    state.fac = widgets.fac.getSelection();
     state.fromKey = Number(byId("from").value);
     state.toKey = Number(byId("to").value);
   }
 
   function refreshOptions() {
     var opts = CartLogic.options(state.data, { pkg: state.pkg, sup: state.sup, fac: state.fac });
-    state.sup = state.sup.filter(function (v) { return opts.suppliers.indexOf(v) >= 0; });
+    state.sup = CartLogic.pruneSelection(state.sup, opts.suppliers);
     opts = CartLogic.options(state.data, { pkg: state.pkg, sup: state.sup, fac: state.fac });
-    state.fac = state.fac.filter(function (v) { return opts.factories.indexOf(v) >= 0; });
-    fillSelect(byId("pkg"), opts.packagingSuppliers, state.pkg);
-    fillSelect(byId("sup"), opts.suppliers, state.sup);
-    fillSelect(byId("fac"), opts.factories, state.fac);
+    state.fac = CartLogic.pruneSelection(state.fac, opts.factories);
+    widgets.pkg.setOptions(opts.packagingSuppliers);
+    widgets.sup.setOptions(opts.suppliers);
+    widgets.fac.setOptions(opts.factories);
   }
 
   function render() {
@@ -175,8 +260,11 @@
       }
     });
 
-    ["pkg", "sup", "fac"].forEach(function (id) {
-      byId(id).addEventListener("change", function () {
+    widgets.pkg = makeFilterWidget("pkg");
+    widgets.sup = makeFilterWidget("sup");
+    widgets.fac = makeFilterWidget("fac");
+    ["pkg", "sup", "fac"].forEach(function (key) {
+      widgets[key].onChange(function () {
         readSelections();
         refreshOptions();
         render();

@@ -26,17 +26,35 @@
       <div class="card-section">
         <label class="section-label">Filters</label>
         <div class="filter-grid">
-          <div class="form-group">
-            <label class="select-label" for="pkg">Packaging Supplier</label>
-            <select id="pkg" class="multi-select" multiple size="6"></select>
+          <div class="form-group filter-widget" id="pkg-widget">
+            <label class="select-label">Packaging Supplier</label>
+            <button type="button" class="filter-trigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="filter-summary">All</span>
+            </button>
+            <div class="filter-panel" role="listbox" hidden>
+              <label class="filter-all"><input type="checkbox" checked> Select all</label>
+              <div class="filter-options"></div>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="select-label" for="sup">Supplier</label>
-            <select id="sup" class="multi-select" multiple size="6"></select>
+          <div class="form-group filter-widget" id="sup-widget">
+            <label class="select-label">Supplier</label>
+            <button type="button" class="filter-trigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="filter-summary">All</span>
+            </button>
+            <div class="filter-panel" role="listbox" hidden>
+              <label class="filter-all"><input type="checkbox" checked> Select all</label>
+              <div class="filter-options"></div>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="select-label" for="fac">Factory</label>
-            <select id="fac" class="multi-select" multiple size="6"></select>
+          <div class="form-group filter-widget" id="fac-widget">
+            <label class="select-label">Factory</label>
+            <button type="button" class="filter-trigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="filter-summary">All</span>
+            </button>
+            <div class="filter-panel" role="listbox" hidden>
+              <label class="filter-all"><input type="checkbox" checked> Select all</label>
+              <div class="filter-options"></div>
+            </div>
           </div>
           <div class="form-group">
             <label class="select-label" for="from">From</label>
