@@ -632,10 +632,10 @@ Expected: no output (checks), "All logic tests passed".
 - [ ] **Step 6: Serve and eyeball the shell**
 
 ```powershell
-python -m http.server 8001 --directory docs\site
+python -m http.server 8010 --directory site_template
 ```
 
-Open `http://localhost:8001/` — the page must show: glass navbar (PACD logo left, title, Primark logo right), filters card, pill Export button (disabled), caption + "Data as of …" lines, empty table area, centered footer text, favicon in the tab. Stop the server afterwards.
+Open `http://localhost:8010/` — the page must show: glass navbar (PACD logo left, title, Primark logo right), filters card, pill Export button (disabled), caption + "Data as of …" lines, empty table area, centered footer text, favicon in the tab. (Serve `site_template` here — `docs/site` is regenerated later in Task 5.) Stop the server afterwards.
 
 - [ ] **Step 7: Commit**
 
@@ -739,10 +739,10 @@ Expected: 39 passed; "All logic tests passed".
 - [ ] **Step 4: Final serve check**
 
 ```powershell
-python -m http.server 8001 --directory docs
+python -m http.server 8010 --directory docs
 ```
 
-Open `http://localhost:8001/site/` — data table renders with navy headers, filters work (pkg → sup → fac), Export Excel produces a downloaded workbook. Stop the server.
+Open `http://localhost:8010/site/` — data table renders with navy headers, filters work (pkg → sup → fac), Export Excel produces a downloaded workbook. Stop the server.
 
 - [ ] **Step 5: Commit the plan**
 
