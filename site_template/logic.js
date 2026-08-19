@@ -130,6 +130,20 @@
     return { title: title, columns: columns, rows: data, widths: widths };
   }
 
+  function selectionSummary(selection) {
+    return selection && selection.length ? selection.length + " selected" : "All";
+  }
+
+  function pruneSelection(selection, available) {
+    var out = [];
+    for (var i = 0; i < selection.length; i++) {
+      if (available.indexOf(selection[i]) >= 0) {
+        out.push(selection[i]);
+      }
+    }
+    return out;
+  }
+
   return {
     keyOf: keyOf,
     periodOf: periodOf,
@@ -139,6 +153,8 @@
     options: options,
     buildView: buildView,
     toWorkbookData: toWorkbookData,
+    selectionSummary: selectionSummary,
+    pruneSelection: pruneSelection,
     WORKBOOK_COLORS: {
       headerBg: "FF00205B",
       totalBg: "FFD9E2F3",

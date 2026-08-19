@@ -57,4 +57,12 @@ assert.deepStrictEqual(COLORS, {
   totalColor: "FF00205B",
 });
 
+assert.deepStrictEqual(Logic.selectionSummary([]), "All");
+assert.deepStrictEqual(Logic.selectionSummary(null), "All");
+assert.deepStrictEqual(Logic.selectionSummary(["S1"]), "1 selected");
+assert.deepStrictEqual(Logic.selectionSummary(["S1", "S2"]), "2 selected");
+assert.deepStrictEqual(Logic.pruneSelection(["S1", "S2", "S9"], ["S1", "S2", "S3"]), ["S1", "S2"]);
+assert.deepStrictEqual(Logic.pruneSelection([], ["S1", "S2"]), []);
+assert.deepStrictEqual(Logic.pruneSelection(["S1"], ["S2"]), []);
+
 console.log("All logic tests passed");
