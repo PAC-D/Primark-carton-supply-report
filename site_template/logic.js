@@ -138,6 +138,13 @@
     whole: whole,
     options: options,
     buildView: buildView,
-    toWorkbookData: toWorkbookData
+    toWorkbookData: toWorkbookData,
+    WORKBOOK_COLORS: {
+      headerBg: "FF00205B",
+      totalBg: "FFD9E2F3",
+      titleColor: "FF00205B",
+      headerColor: "FFFFFFFF",
+      totalColor: "FF00205B"
+    }
   };
 });

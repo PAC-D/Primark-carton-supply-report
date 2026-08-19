@@ -48,4 +48,13 @@ assert.deepStrictEqual(wb.rows[1], [1, "M&U", "S1", "F1", 20, 20]);
 assert.deepStrictEqual(wb.rows[2], ["", "Total", "", "", 20, 20]);
 assert.deepStrictEqual(wb.widths, [4, 20, 10, 9, 8, 7]);
 
+const COLORS = Logic.WORKBOOK_COLORS;
+assert.deepStrictEqual(COLORS, {
+  headerBg: "FF00205B",
+  totalBg: "FFD9E2F3",
+  titleColor: "FF00205B",
+  headerColor: "FFFFFFFF",
+  totalColor: "FF00205B",
+});
+
 console.log("All logic tests passed");
