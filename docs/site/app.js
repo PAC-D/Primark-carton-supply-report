@@ -57,6 +57,9 @@
 
   function refreshOptions() {
     var opts = CartLogic.options(state.data, { pkg: state.pkg, sup: state.sup, fac: state.fac });
+    state.sup = state.sup.filter(function (v) { return opts.suppliers.indexOf(v) >= 0; });
+    opts = CartLogic.options(state.data, { pkg: state.pkg, sup: state.sup, fac: state.fac });
+    state.fac = state.fac.filter(function (v) { return opts.factories.indexOf(v) >= 0; });
     fillSelect(byId("pkg"), opts.packagingSuppliers, state.pkg);
     fillSelect(byId("sup"), opts.suppliers, state.sup);
     fillSelect(byId("fac"), opts.factories, state.fac);
