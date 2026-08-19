@@ -29,11 +29,11 @@ Double-click `start.bat` (first run installs dependencies). The app opens in you
    ```
 
 2. On GitHub: repo → Settings → Pages → Source: "Deploy from a branch" → Branch `main` / `/docs` → Save.
-3. The site is live at `https://<user>.github.io/<repo>/site/`.
+3. The site is live at `https://<user>.github.io/<repo>/`.
 
 ### Publish (every time data changes)
 
-1. Open the app (`start.bat`), click **Publish site**. This regenerates `docs/site/` and commits it with a message like `Updated at 2026-08-19 14:30`.
+1. Open the app (`start.bat`), click **Publish site**. This regenerates `docs/` and commits it with a message like `Updated at 2026-08-19 14:30`.
 2. Push to go live: `git push`.
 3. The site shows "Data as of <publish timestamp>" so visitors know how fresh it is.
 

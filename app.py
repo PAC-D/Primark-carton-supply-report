@@ -54,7 +54,7 @@ def main():
 
     if st.button("Publish site"):
         try:
-            out_dir = Path(__file__).parent / "docs" / "site"
+            out_dir = Path(__file__).parent / "docs"
             now = datetime.datetime.now()
             publish_site(records, out_dir, now)
             commit_site(Path(__file__).parent, "docs/site", now)
