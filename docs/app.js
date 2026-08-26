@@ -26,6 +26,7 @@
     var panel = root.querySelector(".filter-panel");
     var optionsBox = root.querySelector(".filter-options");
     var allInput = root.querySelector(".filter-all input");
+    var searchInput = root.querySelector(".filter-search");
     var optionValues = [];
     var selection = [];
     var onChange = null;
@@ -38,8 +39,18 @@
       allInput.checked = selection.length === 0;
     }
 
+    function applySearch(q) {
+      q = (q || "").trim().toLowerCase();
+      var rows = optionsBox.querySelectorAll(".filter-option");
+      for (var i = 0; i < rows.length; i++) {
+        var label = rows[i].textContent.toLowerCase();
+        rows[i].style.display = (!q || label.indexOf(q) >= 0) ? "" : "none";
+      }
+    }
+
     function rebuildRows() {
       optionsBox.innerHTML = "";
+      searchInput.value = "";
       optionValues.forEach(function (v) {
         var row = document.createElement("label");
         row.className = "filter-option";
@@ -58,6 +69,7 @@
         });
         optionsBox.appendChild(row);
       });
+      applySearch(searchInput.value);
     }
 
     function setOptions(values) {
@@ -83,7 +95,17 @@
 
     trigger.addEventListener("click", function () {
       setOpen(panel.hidden);
+      if (!panel.hidden && searchInput) { searchInput.focus(); }
     });
+
+    if (searchInput) {
+      searchInput.addEventListener("input", function () {
+        applySearch(searchInput.value);
+      });
+      searchInput.addEventListener("click", function (e) {
+        e.stopPropagation();
+      });
+    }
 
     allInput.addEventListener("change", function () {
       if (allInput.checked) {
