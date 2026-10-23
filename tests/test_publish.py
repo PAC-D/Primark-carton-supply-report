@@ -80,9 +80,20 @@ def test_commit_site(tmp_path):
     _git(repo, "init", "-b", "main")
     _git(repo, "config", "user.email", "test@example.com")
     _git(repo, "config", "user.name", "Test")
-    out = publish_site(make_records(), repo / "docs" / "site", datetime.datetime(2026, 8, 19, 14, 30))
-    commit_site(repo, "docs/site", datetime.datetime(2026, 8, 19, 14, 30))
+    out = publish_site(make_records(), repo / "docs", datetime.datetime(2026, 8, 19, 14, 30))
+    commit_site(repo, repo / "docs", datetime.datetime(2026, 8, 19, 14, 30))
     log = _git(repo, "log", "--oneline", "-1")
     assert "Updated at 2026-08-19 14:30" in log.stdout
-    tracked = _git(repo, "ls-files", "docs/site")
-    assert "docs/site/data.json" in tracked.stdout
+    tracked = _git(repo, "ls-files", "docs")
+    assert "docs/data.json" in tracked.stdout
+
+
+def test_commit_site_without_changes(tmp_path):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-b", "main")
+    _git(repo, "config", "user.email", "test@example.com")
+    _git(repo, "config", "user.name", "Test")
+    out = publish_site(make_records(), repo / "docs", datetime.datetime(2026, 8, 19, 14, 30))
+    commit_site(repo, out, datetime.datetime(2026, 8, 19, 14, 30))
+    assert commit_site(repo, out, datetime.datetime(2026, 8, 19, 14, 30)) == ""

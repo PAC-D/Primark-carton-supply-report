@@ -56,10 +56,18 @@ def commit_site(repo_dir, out_dir, now):
     )
     if add.returncode != 0:
         raise RuntimeError(f"git add failed: {add.stderr.strip()}")
+    staged = subprocess.run(
+        ["git", "diff", "--cached", "--quiet"],
+        cwd=repo_dir, capture_output=True, text=True,
+    )
+    if staged.returncode == 0:
+        return ""
     commit = subprocess.run(
         ["git", "commit", "-m", f"Updated at {stamp}"],
         cwd=repo_dir, capture_output=True, text=True,
     )
     if commit.returncode != 0:
-        raise RuntimeError(f"git commit failed: {commit.stderr.strip()}")
+        raise RuntimeError(
+            f"git commit failed: {commit.stderr.strip() or commit.stdout.strip()}"
+        )
     return commit.stdout.strip()

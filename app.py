@@ -57,11 +57,14 @@ def main():
             out_dir = Path(__file__).parent / "docs"
             now = datetime.datetime.now()
             publish_site(records, out_dir, now)
-            commit_site(Path(__file__).parent, "docs/site", now)
-            st.success(
-                f"Site published and committed as 'Updated at {now:%Y-%m-%d %H:%M}'. "
-                "Push to GitHub to go live."
-            )
+            committed = commit_site(Path(__file__).parent, out_dir, now)
+            if committed:
+                st.success(
+                    f"Site published and committed as 'Updated at {now:%Y-%m-%d %H:%M}'. "
+                    "Push to GitHub to go live."
+                )
+            else:
+                st.success("Site published. No new changes to commit.")
         except Exception as exc:
             st.error(f"Publish failed: {exc}")
 
@@ -118,7 +121,7 @@ def main():
         st.info("No data for the selected filters.")
         return
 
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    st.dataframe(df, width="stretch", hide_index=True)
 
     title = (", ".join(pkg_sel) if pkg_sel else "All suppliers") + f" \u2014 {month_label(frm)} to {month_label(to)}"
     try:
